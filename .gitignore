@@ -1,0 +1,31 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Rider files
+.idea/
+*.sln.iml
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# Visual Studio Code
+.vscode/
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Generated files
+*.generated.cs
+*.g.cs
+*.cache
