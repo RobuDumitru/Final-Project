@@ -1,0 +1,91 @@
+<Window x:Class="LostInAForgottenCity.TutorialWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Lost in a Forgotten City"
+        Height="768"
+        Width="1366"
+        WindowStartupLocation="CenterScreen"
+        Background="#0a0a0f">
+    <Grid>
+        <Grid.Resources>
+            <Style x:Key="ConsoleButton" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Foreground" Value="#7aaa60"/>
+                <Setter Property="FontFamily" Value="Courier New"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Height" Value="40"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="Transparent">
+                                <TextBlock x:Name="ButtonText"
+                                           Text="{TemplateBinding Content}"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           FontFamily="{TemplateBinding FontFamily}"
+                                           FontSize="{TemplateBinding FontSize}"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ButtonText" Property="Foreground" Value="#c8ff96"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Resources>
+
+        <!-- Background overlay -->
+        <Rectangle Fill="#0a0a0f"/>
+
+        <!-- Fortuneteller text -->
+        <TextBlock x:Name="FortuneTellerText"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Top"
+                   Margin="0,60,0,0"
+                   FontSize="16"
+                   FontFamily="Courier New"
+                   Foreground="#9a7a9a"
+                   FontStyle="Italic"
+                   TextAlignment="Center"
+                   MaxWidth="800"/>
+
+        <!-- Main narrative text -->
+        <TextBlock x:Name="NarrativeText"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="0,-100,0,0"
+                   FontSize="15"
+                   FontFamily="Courier New"
+                   Foreground="#c8c8b0"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="800"/>
+
+        <!-- Game hint text -->
+        <TextBlock x:Name="HintText"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="0,80,0,0"
+                   FontSize="13"
+                   FontFamily="Courier New"
+                   Foreground="#607860"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="700"
+                   FontStyle="Italic"/>
+
+        <!-- Action button -->
+        <Button x:Name="ActionButton"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="0,0,0,80"
+                Width="300"
+                Style="{StaticResource ConsoleButton}"
+                Click="ActionButton_Click"/>
+    </Grid>
+</Window>

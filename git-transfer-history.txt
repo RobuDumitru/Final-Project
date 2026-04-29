@@ -1,0 +1,23 @@
+Git commands and outputs from this session:
+
+1. Initial status and remote check:
+cd "C:\Users\user\Documents\Dumitru Robu\LostInAForgottenCity"; git status --short; git remote -v
+
+2. Created .gitignore file.
+
+3. Checked branch and commit state:
+cd "C:\Users\user\Documents\Dumitru Robu\LostInAForgottenCity"; git branch --show-current; git config --local --list | findstr /R "user.name user.email"; git status --short; git log --oneline --decorate --max-count=1 2>$null || echo NO_COMMITS
+
+4. Configured local git identity and attempted commit/push:
+cd "C:\Users\user\Documents\Dumitru Robu\LostInAForgottenCity"; git config user.name "RobuDumitru"; git config user.email "robudumitru2006@gmail.com"; git add .gitignore; git add .; git commit -m "GameEngine and Models complete - Phase 1"; git branch -M main; git push -u origin main
+
+5. Conflict resolution with remote:
+cd "C:\Users\user\Documents\Dumitru Robu\LostInAForgottenCity"; git fetch origin; git branch -vv; git log --oneline --decorate --max-count=5 --all; git log --oneline --decorate origin/main --max-count=5
+
+6. Diff inspection:
+git diff --stat origin/main..HEAD; git diff --name-status origin/main..HEAD
+
+7. Final rebase and push:
+cd "C:\Users\user\Documents\Dumitru Robu\LostInAForgottenCity"; git pull --rebase origin main; git push -u origin main
+
+Result: push succeeded and branch 'main' was set to track 'origin/main'.

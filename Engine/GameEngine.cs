@@ -4,80 +4,60 @@ namespace LostInAForgottenCity.Engine
 {
     public class GameEngine
     {
-        public Player CurrentPlayer { get; set; }
-        public Dictionary<string, Location> Locations { get; set; }
-        public Dictionary<string, Item> Items { get; set; }
-        public Dictionary<string, NPC> NPCs { get; set; }
+        public Player CurrentPlayer { get; set; } = new();
+        public Dictionary<string, Location> Locations { get; set; } = new();
+        public Dictionary<string, Item> Items { get; set; } = new();
+        public Dictionary<string, NPC> NPCs { get; set; } = new();
+        public string LastMessage { get; private set; } = "";
+
+        private void Log(string message)
+        {
+            LastMessage = message;
+        }
+
         public void MovePlayer(string locationId)
         {
-            if (Locations.ContainsKey(locationId))
+            if (!Locations.TryGetValue(locationId, out var location))
             {
-                var location = Locations[locationId];
-                if (location.IsLocked)
-                {
-                    Console.WriteLine("The location is locked. You need to find the required item to unlock it.");
-                    return;
-                }
-                CurrentPlayer.CurrentLocationId = locationId;
-                Console.WriteLine($"You have moved to: {location.Name}");
-                Console.WriteLine(location.Description);
+                Log("Invalid location.");
+                return;
             }
-            else
+
+            if (location.IsLocked)
             {
-                Console.WriteLine("Invalid location.");
+                Log("The location is locked. You need the required item to unlock it.");
+                return;
             }
+
+            CurrentPlayer.CurrentLocationId = locationId;
+            Log($"You have moved to: {location.Name}\n{location.Description}");
+
             if (!CurrentPlayer.VisitedLocations.Contains(locationId))
-            {
                 CurrentPlayer.VisitedLocations.Add(locationId);
-            }
         }
+
         public void PickUpItem(string itemId)
         {
             var currentLocation = Locations[CurrentPlayer.CurrentLocationId];
-            if (currentLocation.ItemIds.Contains(itemId))
+            if (!currentLocation.ItemIds.Contains(itemId))
             {
-                CurrentPlayer.Inventory.Add(itemId);
-                currentLocation.ItemIds.Remove(itemId);
-                if (Items.ContainsKey(itemId))
-                {
-                    Console.WriteLine($"You picked up: {Items[itemId].Name}");
-                }
-                else
-                {
-                    Console.WriteLine("You picked up an item.");
-                }
+                Log("Item not found in this location.");
+                return;
             }
-            else
-            {
-                Console.WriteLine("Item not found in this location.");
-            }
+
+            CurrentPlayer.Inventory.Add(itemId);
+            currentLocation.ItemIds.Remove(itemId);
+            Log(Items.TryGetValue(itemId, out var item)
+                ? $"You picked up: {item.Name}"
+                : "You picked up an item.");
         }
+
         public void TalkToNPC(string npcId)
         {
-            var currentLocation = Locations[CurrentPlayer.CurrentLocationId];
-            if (currentLocation.NpcId == npcId)
-            {
-                if (NPCs.ContainsKey(npcId))
-                {
-                    var npc = NPCs[npcId];
-                    Console.WriteLine($"You talk to {npc.Name}:");
-                    Console.WriteLine(npc.Dialogue);
-                }
-                else
-                {
-                    Console.WriteLine("You talk to someone, but they don't respond.");
-                }
-            }
-            else
-            {
-                Console.WriteLine("No one to talk to here.");
-            }
+            // TODO: Implement dialogue system
+            Log("Dialogue system coming soon.");
         }
-        public void TalkToNPC(string npcId)
-        {
-            // TO DO: implement dialogue system here
-            Console.WriteLine("Dialogue system is not implemented yet.");
-        }
+
         public Location GetCurrentLocation() => Locations[CurrentPlayer.CurrentLocationId];
     }
 }
