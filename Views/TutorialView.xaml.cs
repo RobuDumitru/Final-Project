@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
-namespace LostInAForgottenCity
+namespace LostInAForgottenCity.Views
 {
-    public partial class TutorialWindow : Window
+    public partial class TutorialView : UserControl
     {
         // ── Fields ──────────────────────────────
         private int _currentScene = 0;
@@ -16,7 +15,7 @@ namespace LostInAForgottenCity
         private Queue<(TextBlock Block, string Text, int SpeedMs)> _typewriterQueue = new();
 
         // ── Constructor ─────────────────────────
-        public TutorialWindow()
+        public TutorialView()
         {
             InitializeComponent();
             ShowScene(0);
@@ -152,7 +151,6 @@ namespace LostInAForgottenCity
                 _typewriterQueue.Enqueue((block, text, speedMs));
                 return;
             }
-
             StartTypewriter(block, text, speedMs);
         }
 
@@ -173,7 +171,6 @@ namespace LostInAForgottenCity
             _typewriterPosition++;
             if (_targetBlock != null)
                 _targetBlock.Text = _targetText.Substring(0, _typewriterPosition);
-
             if (_typewriterPosition >= _targetText.Length)
             {
                 _typewriterTimer.Stop();
@@ -190,9 +187,7 @@ namespace LostInAForgottenCity
         {
             if (_currentScene == 11)
             {
-                foreach (Window w in Application.Current.Windows)
-                    if (w is MainWindow) w.Show();
-                this.Close();
+                MainWindow.Instance?.NavigateTo(new MenuView());
             }
             else
             {
