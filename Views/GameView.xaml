@@ -1,5 +1,231 @@
 <UserControl x:Class="LostInAForgottenCity.Views.GameView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Background="#0a0a0f"/>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:LostInAForgottenCity.Controls">
+      <Grid Background="#0a0a0f">
+            <Grid.RowDefinitions>
+                  <RowDefinition Height="90"/>
+                  <!-- top bar -->
+                  <RowDefinition Height="*"/>
+                  <!-- main area -->
+                  <RowDefinition Height="80"/>
+                  <!-- bottom bar -->
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="250"/>
+                  <!-- map -->
+                  <ColumnDefinition Width="*"/>
+                  <!-- console -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Placeholders go here, inside the Grid but after definitions -->
+
+            <!-- Top bar spans both columns -->
+            <Grid Grid.Row="0"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="2"
+                  Background="#1a1a2a">
+                  <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <!-- left -->
+                        <ColumnDefinition Width="280"/>
+                        <!-- center -->
+                        <ColumnDefinition Width="*"/>
+                        <!-- right -->
+                  </Grid.ColumnDefinitions>
+
+                  <!-- LEFT: Sanity + Circles + Danger -->
+                  <Grid Grid.Column="0"
+                        Margin="10,5,5,5">
+                        <Grid.RowDefinitions>
+                              <RowDefinition Height="Auto"/>
+                              <!-- Sanity -->
+                              <RowDefinition Height="Auto"/>
+                              <!-- Subconscious -->
+                              <RowDefinition Height="Auto"/>
+                              <!-- Danger -->
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 1: Sanity bar -->
+                        <controls:SanityBar Grid.Row="0"
+                                            Value="100"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Center"/>
+
+                        <!-- Row 2: Circles + Danger -->
+                        <controls:SubconsciousBar Grid.Row="1"
+                                                  Value="0"
+                                                  MaxSlots="5"
+                                                  VerticalAlignment="Center"/>
+                        <controls:DangerIndicator Grid.Row="2"
+                                                  Level="Insignificant"
+                                                  StatusEffect=""
+                                                  VerticalAlignment="Center"/>
+                  </Grid>
+
+                  <!-- CENTER: Soul + Resistance + Clock + Weather -->
+                  <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                              <RowDefinition Height="*"/>
+                              <RowDefinition Height="*"/>
+                              <RowDefinition Height="*"/>
+                              <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 1: Soul bar -->
+                        <StackPanel Grid.Row="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                              <TextBlock Text="SOUL "
+                                         FontFamily="Courier New"
+                                         FontSize="11"
+                                         Foreground="#c8a8d0"
+                                         VerticalAlignment="Center"/>
+                              <ProgressBar x:Name="SoulBar"
+                                           Value="100"
+                                           Maximum="100"
+                                           Width="120"
+                                           Height="8"
+                                           VerticalAlignment="Center"
+                                           Foreground="#d4a820"
+                                           Background="#2a1a2a"/>
+                              <TextBlock x:Name="SoulText"
+                                         Text=" 50p/50p"
+                                         FontFamily="Courier New"
+                                         FontSize="11"
+                                         Foreground="#c8a8d0"
+                                         VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Row 2: Resistance bar -->
+                        <StackPanel Grid.Row="1"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                              <TextBlock Text="RES "
+                                         FontFamily="Courier New"
+                                         FontSize="11"
+                                         Foreground="#60a8a0"
+                                         VerticalAlignment="Center"/>
+                              <ProgressBar x:Name="ResistanceBar"
+                                           Value="100"
+                                           Maximum="100"
+                                           Width="120"
+                                           Height="8"
+                                           VerticalAlignment="Center"
+                                           Foreground="#60a8a0"
+                                           Background="#1a2a2a"/>
+                        </StackPanel>
+
+                        <!-- Row 3: Clock -->
+                        <TextBlock Grid.Row="2"
+                                   x:Name="ClockText"
+                                   Text="Day 1 — 15:00"
+                                   FontFamily="Courier New"
+                                   FontSize="13"
+                                   Foreground="#c8c8b0"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+
+                        <!-- Row 4: Weather -->
+                        <TextBlock Grid.Row="3"
+                                   x:Name="WeatherText"
+                                   Text="🌫️ Day — Foggy"
+                                   FontFamily="Courier New"
+                                   FontSize="11"
+                                   Foreground="#8a8a7a"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                  </Grid>
+
+                  <!-- RIGHT: HP + Stamina + Sleep -->
+                  <Grid Grid.Column="2"
+                        Margin="5,5,10,5">
+                        <Grid.RowDefinitions>
+                              <RowDefinition Height="*"/>
+                              <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 1: HP bar full width -->
+                        <StackPanel Grid.Row="0"
+                                    VerticalAlignment="Center">
+                              <TextBlock Text="HP"
+                                         FontFamily="Courier New"
+                                         FontSize="11"
+                                         Foreground="#aa6060"
+                                         HorizontalAlignment="Right"/>
+                              <ProgressBar x:Name="HpBar"
+                                           Value="100"
+                                           Maximum="100"
+                                           Height="12"
+                                           HorizontalAlignment="Stretch"
+                                           Foreground="#aa6060"
+                                           Background="#2a1a1a"/>
+                        </StackPanel>
+
+                        <!-- Row 2: Stamina + Sleep -->
+                        <Grid Grid.Row="1"
+                              VerticalAlignment="Center">
+                              <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                              </Grid.ColumnDefinitions>
+
+                              <!-- Stamina triangles -->
+                              <TextBlock Grid.Column="0"
+                                         x:Name="StaminaText"
+                                         Text="▲▲▲▲▲"
+                                         FontFamily="Courier New"
+                                         FontSize="13"
+                                         Foreground="#7aaa60"
+                                         VerticalAlignment="Center"/>
+
+                              <!-- Sleep bar -->
+                              <StackPanel Grid.Column="1"
+                                          Orientation="Horizontal"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center">
+                                    <TextBlock Text="😴 "
+                                               FontSize="11"
+                                               VerticalAlignment="Center"/>
+                                    <ProgressBar x:Name="SleepBar"
+                                                 Value="100"
+                                                 Maximum="100"
+                                                 Width="80"
+                                                 Height="8"
+                                                 Foreground="#6060aa"
+                                                 Background="#1a1a2a"
+                                                 VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SleepText"
+                                               Text=" 100%"
+                                               FontFamily="Courier New"
+                                               FontSize="11"
+                                               Foreground="#6060aa"
+                                               VerticalAlignment="Center"/>
+                              </StackPanel>
+                        </Grid>
+                  </Grid>
+            </Grid>
+
+            <!-- Map -->
+            <Rectangle Fill="#0d1a0d"
+                       Grid.Row="1"
+                       Grid.Column="0"/>
+
+            <!-- Console -->
+            <Rectangle Fill="#1a0d0d"
+                       Grid.Row="1"
+                       Grid.Column="1"/>
+
+            <!-- Bottom bar spans both columns -->
+            <Rectangle Fill="#1a1a2a"
+                       Grid.Row="2"
+                       Grid.Column="0"
+                       Grid.ColumnSpan="2"/>
+
+      </Grid>
 </UserControl>

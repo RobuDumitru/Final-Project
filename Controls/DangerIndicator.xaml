@@ -1,0 +1,24 @@
+<UserControl x:Class="LostInAForgottenCity.Controls.DangerIndicator"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Orientation="Horizontal">
+        <TextBlock x:Name="DangerIcon" Text="⚫"
+                   FontSize="12" Margin="0,0,4,0"
+                   VerticalAlignment="Center"/>
+        <TextBlock x:Name="DangerText" Text="INSIGNIFICANT"
+                   FontFamily="Courier New" FontSize="11"
+                   Foreground="#7aaa60"
+                   VerticalAlignment="Center"/>
+        <TextBlock x:Name="CautionText" Text="" 
+                   FontFamily="Courier New" FontSize="11"
+                   Foreground="#cc8820" Margin="4,0,0,0"
+                   VerticalAlignment="Center"/>
+        <TextBlock Text=" | " FontFamily="Courier New"
+                   FontSize="11" Foreground="#4a4a5a"
+                   VerticalAlignment="Center"/>
+        <TextBlock x:Name="StatusText" Text=""
+                   FontFamily="Courier New" FontSize="11"
+                   Foreground="#c8c8b0"
+                   VerticalAlignment="Center"/>
+    </StackPanel>
+</UserControl>
