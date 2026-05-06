@@ -4,7 +4,7 @@
              xmlns:controls="clr-namespace:LostInAForgottenCity.Controls">
       <Grid Background="#0a0a0f">
             <Grid.RowDefinitions>
-                  <RowDefinition Height="90"/>
+                  <RowDefinition Height="100"/>
                   <!-- top bar -->
                   <RowDefinition Height="*"/>
                   <!-- main area -->
@@ -29,7 +29,7 @@
                   <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <!-- left -->
-                        <ColumnDefinition Width="280"/>
+                        <ColumnDefinition Width="220"/>
                         <!-- center -->
                         <ColumnDefinition Width="*"/>
                         <!-- right -->
@@ -144,70 +144,28 @@
 
                   <!-- RIGHT: HP + Stamina + Sleep -->
                   <Grid Grid.Column="2"
-                        Margin="5,5,10,5">
+                        Margin="5,5,15,5" MinWidth="380">
                         <Grid.RowDefinitions>
-                              <RowDefinition Height="*"/>
-                              <RowDefinition Height="*"/>
+                              <RowDefinition Height="Auto"/>
+                              <!-- HP -->
+                              <RowDefinition Height="Auto"/>
+                              <!-- Stamina + Sleep -->
                         </Grid.RowDefinitions>
 
-                        <!-- Row 1: HP bar full width -->
-                        <StackPanel Grid.Row="0"
-                                    VerticalAlignment="Center">
-                              <TextBlock Text="HP"
-                                         FontFamily="Courier New"
-                                         FontSize="11"
-                                         Foreground="#aa6060"
-                                         HorizontalAlignment="Right"/>
-                              <ProgressBar x:Name="HpBar"
-                                           Value="100"
-                                           Maximum="100"
-                                           Height="12"
-                                           HorizontalAlignment="Stretch"
-                                           Foreground="#aa6060"
-                                           Background="#2a1a1a"/>
-                        </StackPanel>
+                        <controls:HpBar Grid.Row="0"
+                                        Value="20"
+                                        MaxSegments="20"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"/>
 
-                        <!-- Row 2: Stamina + Sleep -->
-                        <Grid Grid.Row="1"
-                              VerticalAlignment="Center">
-                              <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                              </Grid.ColumnDefinitions>
+                        <controls:StaminaSleepBar Grid.Row="1"
+                                                  Value="10"
+                                                  MaxSegments="10"
+                                                  SleepValue="100"
+                                                  IsSleepVisible="True"
+                                                  HorizontalAlignment="Right"
+                                                  VerticalAlignment="Center"/>
 
-                              <!-- Stamina triangles -->
-                              <TextBlock Grid.Column="0"
-                                         x:Name="StaminaText"
-                                         Text="▲▲▲▲▲"
-                                         FontFamily="Courier New"
-                                         FontSize="13"
-                                         Foreground="#7aaa60"
-                                         VerticalAlignment="Center"/>
-
-                              <!-- Sleep bar -->
-                              <StackPanel Grid.Column="1"
-                                          Orientation="Horizontal"
-                                          HorizontalAlignment="Right"
-                                          VerticalAlignment="Center">
-                                    <TextBlock Text="😴 "
-                                               FontSize="11"
-                                               VerticalAlignment="Center"/>
-                                    <ProgressBar x:Name="SleepBar"
-                                                 Value="100"
-                                                 Maximum="100"
-                                                 Width="80"
-                                                 Height="8"
-                                                 Foreground="#6060aa"
-                                                 Background="#1a1a2a"
-                                                 VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="SleepText"
-                                               Text=" 100%"
-                                               FontFamily="Courier New"
-                                               FontSize="11"
-                                               Foreground="#6060aa"
-                                               VerticalAlignment="Center"/>
-                              </StackPanel>
-                        </Grid>
                   </Grid>
             </Grid>
 
