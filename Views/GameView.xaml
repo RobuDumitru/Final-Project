@@ -29,7 +29,7 @@
                   <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <!-- left -->
-                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="300"/>
                         <!-- center -->
                         <ColumnDefinition Width="*"/>
                         <!-- right -->
@@ -74,50 +74,14 @@
                         </Grid.RowDefinitions>
 
                         <!-- Row 1: Soul bar -->
-                        <StackPanel Grid.Row="0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Orientation="Horizontal">
-                              <TextBlock Text="SOUL "
-                                         FontFamily="Courier New"
-                                         FontSize="11"
-                                         Foreground="#c8a8d0"
-                                         VerticalAlignment="Center"/>
-                              <ProgressBar x:Name="SoulBar"
-                                           Value="100"
-                                           Maximum="100"
-                                           Width="120"
-                                           Height="8"
-                                           VerticalAlignment="Center"
-                                           Foreground="#d4a820"
-                                           Background="#2a1a2a"/>
-                              <TextBlock x:Name="SoulText"
-                                         Text=" 50p/50p"
-                                         FontFamily="Courier New"
-                                         FontSize="11"
-                                         Foreground="#c8a8d0"
-                                         VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <controls:SoulBar Grid.Row="0" Value="50" MaxValue="50"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
 
                         <!-- Row 2: Resistance bar -->
-                        <StackPanel Grid.Row="1"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Orientation="Horizontal">
-                              <TextBlock Text="RES "
-                                         FontFamily="Courier New"
-                                         FontSize="11"
-                                         Foreground="#60a8a0"
-                                         VerticalAlignment="Center"/>
-                              <ProgressBar x:Name="ResistanceBar"
-                                           Value="100"
-                                           Maximum="100"
-                                           Width="120"
-                                           Height="8"
-                                           VerticalAlignment="Center"
-                                           Foreground="#60a8a0"
-                                           Background="#1a2a2a"/>
-                        </StackPanel>
+                        <controls:ResistanceBar Grid.Row="1" Value="20" MaxValue="20"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
 
                         <!-- Row 3: Clock -->
                         <TextBlock Grid.Row="2"
@@ -144,7 +108,8 @@
 
                   <!-- RIGHT: HP + Stamina + Sleep -->
                   <Grid Grid.Column="2"
-                        Margin="5,5,15,5" MinWidth="380">
+                        Margin="5,5,15,5"
+                              MinWidth="380">
                         <Grid.RowDefinitions>
                               <RowDefinition Height="Auto"/>
                               <!-- HP -->
@@ -153,7 +118,7 @@
                         </Grid.RowDefinitions>
 
                         <controls:HpBar Grid.Row="0"
-                                        Value="20"
+                                        Value="10"
                                         MaxSegments="20"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Center"/>

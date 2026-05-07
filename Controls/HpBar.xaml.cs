@@ -68,7 +68,7 @@ namespace LostInAForgottenCity.Controls
                 {
                     segment.Text = "▯"; // Empty segment
                     segment.Foreground = new SolidColorBrush(
-                        Color.FromRgb(0x40, 0x20, 0x20));
+                        Color.FromRgb(0x70, 0x50, 0x50));
                 }
 
                 SegmentsPanel.Children.Add(segment);
