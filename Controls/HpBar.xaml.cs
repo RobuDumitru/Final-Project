@@ -43,10 +43,8 @@ namespace LostInAForgottenCity.Controls
 
         private void UpdateVisual()
         {
-            // Clear existing segments
             SegmentsPanel.Children.Clear();
 
-            // Generate segments dynamically
             for (int i = 0; i < MaxSegments; i++)
             {
                 var segment = new TextBlock
@@ -58,21 +56,23 @@ namespace LostInAForgottenCity.Controls
                     Margin = new Thickness(1, 0, 1, 0)
                 };
 
-                if (i < Value)
+                if (i >= MaxSegments - Value)
                 {
-                    segment.Text = "▮"; // Filled segment
+                    segment.Text = "▮"; // filled
                     segment.Foreground = new SolidColorBrush(
                         Color.FromRgb(0xaa, 0x40, 0x40));
                 }
                 else
                 {
-                    segment.Text = "▯"; // Empty segment
+                    segment.Text = "▯"; // empty
                     segment.Foreground = new SolidColorBrush(
-                        Color.FromRgb(0x70, 0x50, 0x50));
+                        Color.FromRgb(0xaa, 0x40, 0x40));
                 }
 
                 SegmentsPanel.Children.Add(segment);
             }
+
+            Label.Text = $"{Value}/{MaxSegments}";
         }
     }
 }

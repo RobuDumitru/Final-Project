@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -7,18 +8,15 @@ namespace LostInAForgottenCity.Controls
 {
     public partial class ResistanceBar : UserControl
     {
-        private DispatcherTimer _flickerTimer = new();
-        private bool _flickerState = true;
-
         public static readonly DependencyProperty ValueProperty =
             DependencyProperty.Register(
                 "Value", typeof(int), typeof(ResistanceBar),
-                new PropertyMetadata(50, OnPropertyChanged));
+                new PropertyMetadata(0, OnPropertyChanged));
 
         public static readonly DependencyProperty MaxValueProperty =
             DependencyProperty.Register(
                 "MaxValue", typeof(int), typeof(ResistanceBar),
-                new PropertyMetadata(50, OnPropertyChanged));
+                new PropertyMetadata(30, OnPropertyChanged));
 
         public int Value
         {
@@ -32,15 +30,15 @@ namespace LostInAForgottenCity.Controls
             set => SetValue(MaxValueProperty, value);
         }
 
+        private DispatcherTimer _flickerTimer;
+        private bool _flickerState = false;
+
         public ResistanceBar()
         {
             InitializeComponent();
-            _flickerTimer.Interval = TimeSpan.FromMilliseconds(400);
-            _flickerTimer.Tick += (s, e) =>
-            {
-                _flickerState = !_flickerState;
-                UpdateVisual();
-            };
+            _flickerTimer = new DispatcherTimer();
+            _flickerTimer.Interval = TimeSpan.FromMilliseconds(500);
+            _flickerTimer.Tick += (s, e) => { _flickerState = !_flickerState; UpdateVisual(); };
             UpdateVisual();
         }
 
@@ -52,57 +50,58 @@ namespace LostInAForgottenCity.Controls
         }
 
         private void UpdateVisual()
-{
-    ResistancePanel.Children.Clear();
-
-    int totalSegments = MaxValue;
-    int filledSegments = Value;
-    int emptySegments = totalSegments - filledSegments;
-    int lostEachSide = emptySegments / 2;
-
-    bool isCritical = Value <= 4;
-    if (isCritical && !_flickerTimer.IsEnabled)
-        _flickerTimer.Start();
-    else if (!isCritical && _flickerTimer.IsEnabled)
-        _flickerTimer.Stop();
-
-    for (int i = 0; i < totalSegments; i++)
-    {
-        bool isLostLeft = i < lostEachSide;
-        bool isLostRight = i >= totalSegments - lostEachSide;
-        bool isEmpty = isLostLeft || isLostRight;
-
-        bool isCenterSegment = i == totalSegments / 2;
-        if (isCritical && isCenterSegment && !_flickerState)
-            isEmpty = true;
-
-        // Create segment here
-        var segment = new TextBlock
         {
-            FontFamily = new FontFamily("Courier New"),
-            FontSize = 14,
-            Width = 10,
-            TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0)
-        };
+            ResistancePanel.Children.Clear();
 
-        if (!isEmpty)
-        {
-            segment.Text = "‼";
-            segment.Foreground = new SolidColorBrush(
-                isCritical
-                ? Color.FromRgb(0xcc, 0x40, 0x40)
-                : Color.FromRgb(0x60, 0xc8, 0xa0));
+            int totalSegments = MaxValue;
+            int filledSegments = Value;
+            int emptySegments = totalSegments - filledSegments;
+            int lostEachSide = emptySegments / 2;
+
+            bool isCritical = Value <= 4;
+            if (isCritical)
+                _flickerTimer.Start();
+            else
+                _flickerTimer.Stop();
+
+            for (int i = 0; i < totalSegments; i++)
+            {
+                bool isLostLeft = i < lostEachSide;
+                bool isLostRight = i >= totalSegments - lostEachSide;
+                bool isEmpty = isLostLeft || isLostRight;
+                bool isCenterSegment = i == totalSegments / 2;
+
+                if (isCritical && isCenterSegment && !_flickerState)
+                    isEmpty = true;
+
+                var segment = new TextBlock
+                {
+                    FontFamily = new FontFamily("Courier New"),
+                    FontSize = 10,
+                    Width = 6,
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0)
+                };
+
+                if (!isEmpty)
+                {
+                    segment.Text = "‼";
+                    segment.Foreground = new SolidColorBrush(
+                        isCritical
+                        ? Color.FromRgb(0xff, 0x40, 0x40)
+                        : Color.FromRgb(0x00, 0xff, 0xcc));
+                }
+                else
+                {
+                    segment.Text = "‼";
+                    segment.Foreground = new SolidColorBrush(
+                        Color.FromRgb(0x00, 0x30, 0x28));
+                }
+
+                ResistancePanel.Children.Add(segment);
+            }
+
+            Label.Text = $"{Value}/{MaxValue}";
         }
-        else
-        {
-            segment.Text = "░";
-            segment.Foreground = new SolidColorBrush(
-                Color.FromRgb(0x30, 0x20, 0x10));
-        }
-
-        ResistancePanel.Children.Add(segment);
-    }
-}
     }
 }

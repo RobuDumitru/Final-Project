@@ -6,13 +6,11 @@ namespace LostInAForgottenCity.Controls
 {
     public partial class SubconsciousBar : UserControl
     {
-        // How many slots are filled (transformation progress)
         public static readonly DependencyProperty ValueProperty =
             DependencyProperty.Register(
                 "Value", typeof(int), typeof(SubconsciousBar),
                 new PropertyMetadata(0, OnPropertyChanged));
 
-        // Total slots available (5 base + up to 5 from ritual dolls)
         public static readonly DependencyProperty MaxSlotsProperty =
             DependencyProperty.Register(
                 "MaxSlots", typeof(int), typeof(SubconsciousBar),
@@ -45,10 +43,8 @@ namespace LostInAForgottenCity.Controls
 
         private void UpdateVisual()
         {
-            // Clear existing slots
             SlotsPanel.Children.Clear();
 
-            // Generate slots dynamically
             for (int i = 0; i < MaxSlots; i++)
             {
                 var slot = new TextBlock
@@ -60,21 +56,21 @@ namespace LostInAForgottenCity.Controls
 
                 if (i < Value)
                 {
-                    // White mask — transformation
-                    slot.Text = "☻";
+                    slot.Text = "☻"; // mask
                     slot.Foreground = new SolidColorBrush(
                         Color.FromRgb(0xc0, 0xc0, 0xc0));
                 }
                 else
                 {
-                    // Black mask — you
-                    slot.Text = "☺";
+                    slot.Text = "☺"; // self
                     slot.Foreground = new SolidColorBrush(
-                        Color.FromRgb(0xc8, 0xa8, 0xc8));
+                        Color.FromRgb(0xc0, 0xc0, 0xc0));
                 }
 
                 SlotsPanel.Children.Add(slot);
             }
+
+            Label.Text = $"{Value}/{MaxSlots}";
         }
     }
 }

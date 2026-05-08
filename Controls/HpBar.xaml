@@ -1,16 +1,32 @@
 <UserControl x:Class="LostInAForgottenCity.Controls.HpBar"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <StackPanel HorizontalAlignment="Right">
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Border BorderBrush="#aa6060" BorderThickness="1"
-                    Padding="4,2" HorizontalAlignment="Right">
-                <StackPanel x:Name="SegmentsPanel" Orientation="Horizontal"/>
-            </Border>
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel HorizontalAlignment="Center">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
             <TextBlock Text="HP" FontFamily="Courier New"
-                       FontSize="13" Foreground="#aa6060"
-                       VerticalAlignment="Center" Margin="6,0,0,0"/>
-        </StackPanel>
-        <Rectangle Height="1" Fill="#aa6060" Margin="0,2,0,0"/>
+                       FontSize="11" Foreground="#aa6060"
+                       VerticalAlignment="Center"
+                       Grid.Column="0"/>
+            <TextBlock Grid.Column="1"/>
+            <TextBlock x:Name="Label" Text="10/20"
+                       FontFamily="Courier New" FontSize="10"
+                       Foreground="#aa6060"
+                       VerticalAlignment="Center"
+                       Grid.Column="2"/>
+        </Grid>
+
+        <Border BorderBrush="#aa6060" BorderThickness="1"
+                Padding="2,2" HorizontalAlignment="Center"
+                Margin="0,4,0,0">
+            <StackPanel x:Name="SegmentsPanel" Orientation="Horizontal"/>
+        </Border>
+
+        <Rectangle Height="1" Fill="#aa6060" Margin="0,4,0,0"/>
     </StackPanel>
 </UserControl>

@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -7,18 +8,15 @@ namespace LostInAForgottenCity.Controls
 {
     public partial class SoulBar : UserControl
     {
-        private DispatcherTimer _flickerTimer = new();
-        private bool _flickerState = true;
-
         public static readonly DependencyProperty ValueProperty =
             DependencyProperty.Register(
                 "Value", typeof(int), typeof(SoulBar),
-                new PropertyMetadata(50, OnPropertyChanged));
+                new PropertyMetadata(0, OnPropertyChanged));
 
         public static readonly DependencyProperty MaxValueProperty =
             DependencyProperty.Register(
                 "MaxValue", typeof(int), typeof(SoulBar),
-                new PropertyMetadata(50, OnPropertyChanged));
+                new PropertyMetadata(100, OnPropertyChanged));
 
         public int Value
         {
@@ -32,15 +30,15 @@ namespace LostInAForgottenCity.Controls
             set => SetValue(MaxValueProperty, value);
         }
 
+        private DispatcherTimer _flickerTimer;
+        private bool _flickerState = false;
+
         public SoulBar()
         {
             InitializeComponent();
-            _flickerTimer.Interval = TimeSpan.FromMilliseconds(400);
-            _flickerTimer.Tick += (s, e) =>
-            {
-                _flickerState = !_flickerState;
-                UpdateVisual();
-            };
+            _flickerTimer = new DispatcherTimer();
+            _flickerTimer.Interval = TimeSpan.FromMilliseconds(500);
+            _flickerTimer.Tick += (s, e) => { _flickerState = !_flickerState; UpdateVisual(); };
             UpdateVisual();
         }
 
@@ -52,57 +50,58 @@ namespace LostInAForgottenCity.Controls
         }
 
         private void UpdateVisual()
-{
-    SoulPanel.Children.Clear();
-
-    int totalSegments = MaxValue;
-    int filledSegments = Value;
-    int emptySegments = totalSegments - filledSegments;
-    int lostEachSide = emptySegments / 2;
-
-    bool isCritical = Value <= 4;
-    if (isCritical && !_flickerTimer.IsEnabled)
-        _flickerTimer.Start();
-    else if (!isCritical && _flickerTimer.IsEnabled)
-        _flickerTimer.Stop();
-
-    for (int i = 0; i < totalSegments; i++)
-    {
-        bool isLostLeft = i < lostEachSide;
-        bool isLostRight = i >= totalSegments - lostEachSide;
-        bool isEmpty = isLostLeft || isLostRight;
-
-        bool isCenterSegment = i == totalSegments / 2;
-        if (isCritical && isCenterSegment && !_flickerState)
-            isEmpty = true;
-
-        // Create segment here
-        var segment = new TextBlock
         {
-            FontFamily = new FontFamily("Courier New"),
-            FontSize = 11,
-            Width = 7,
-            TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0)
-        };
+            SoulPanel.Children.Clear();
 
-        if (!isEmpty)
-        {
-            segment.Text = "█";
-            segment.Foreground = new SolidColorBrush(
-                isCritical
-                ? Color.FromRgb(0xcc, 0x40, 0x40)
-                : Color.FromRgb(0xd4, 0xa8, 0x20));
+            int totalSegments = MaxValue;
+            int filledSegments = Value;
+            int emptySegments = totalSegments - filledSegments;
+            int lostEachSide = emptySegments / 2;
+
+            bool isCritical = Value <= 4;
+            if (isCritical)
+                _flickerTimer.Start();
+            else
+                _flickerTimer.Stop();
+
+            for (int i = 0; i < totalSegments; i++)
+            {
+                bool isLostLeft = i < lostEachSide;
+                bool isLostRight = i >= totalSegments - lostEachSide;
+                bool isEmpty = isLostLeft || isLostRight;
+                bool isCenterSegment = i == totalSegments / 2;
+
+                if (isCritical && isCenterSegment && !_flickerState)
+                    isEmpty = true;
+
+                var segment = new TextBlock
+                {
+                    FontFamily = new FontFamily("Courier New"),
+                    FontSize = 10,
+                    Width = 6,
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0)
+                };
+
+                if (!isEmpty)
+                {
+                    segment.Text = "§";
+                    segment.Foreground = new SolidColorBrush(
+                        isCritical
+                        ? Color.FromRgb(0xff, 0x40, 0x40)
+                        : Color.FromRgb(0xff, 0xcc, 0x00));
+                }
+                else
+                {
+                    segment.Text = "§";
+                    segment.Foreground = new SolidColorBrush(
+                        Color.FromRgb(0x40, 0x30, 0x00));
+                }
+
+                SoulPanel.Children.Add(segment);
+            }
+
+            Label.Text = $"{Value}/{MaxValue}";
         }
-        else
-        {
-            segment.Text = "░";
-            segment.Foreground = new SolidColorBrush(
-                Color.FromRgb(0x30, 0x20, 0x10));
-        }
-
-        SoulPanel.Children.Add(segment);
-    }
-}
     }
 }

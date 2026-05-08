@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
+
 namespace LostInAForgottenCity.Controls
 {
     public enum DangerLevel
@@ -15,8 +16,10 @@ namespace LostInAForgottenCity.Controls
         Deadly
     }
 
+
     public partial class DangerIndicator : UserControl
     {
+        // Existing properties
         public static readonly DependencyProperty LevelProperty =
             DependencyProperty.Register(
                 "Level", typeof(DangerLevel), typeof(DangerIndicator),
@@ -26,6 +29,13 @@ namespace LostInAForgottenCity.Controls
             DependencyProperty.Register(
                 "StatusEffect", typeof(string), typeof(DangerIndicator),
                 new PropertyMetadata("", OnPropertyChanged));
+
+        // New numeric `Danger` bar indicator
+        public static readonly DependencyProperty DangerProperty =
+            DependencyProperty.Register(
+                "Danger", typeof(int), typeof(DangerIndicator),
+                new PropertyMetadata(0, OnPropertyChanged));
+
 
         public DangerLevel Level
         {
@@ -39,11 +49,19 @@ namespace LostInAForgottenCity.Controls
             set => SetValue(StatusEffectProperty, value);
         }
 
+        public int Danger
+        {
+            get => (int)GetValue(DangerProperty);
+            set => SetValue(DangerProperty, value);
+        }
+
+
         public DangerIndicator()
         {
             InitializeComponent();
             UpdateVisual();
         }
+
 
         private static void OnPropertyChanged(DependencyObject d,
             DependencyPropertyChangedEventArgs e)
@@ -52,8 +70,12 @@ namespace LostInAForgottenCity.Controls
                 indicator.UpdateVisual();
         }
 
+
         private void UpdateVisual()
         {
+            // 1. Compute level from Danger (0–100) if you want
+            int clampedDanger = Math.Clamp(Danger, 0, 100);
+
             switch (Level)
             {
                 case DangerLevel.Insignificant:
@@ -113,8 +135,11 @@ namespace LostInAForgottenCity.Controls
                     break;
             }
 
-            // Status effect
+            // 2. Status effect
             StatusText.Text = StatusEffect;
+
+            // 3. Numeric indicator inside this bar control
+            DangerLevelText.Text = $"{Danger}/100";
         }
     }
 }

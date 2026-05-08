@@ -5,17 +5,26 @@
         <TextBlock x:Name="DangerIcon" Text="⚫"
                    FontSize="12" Margin="0,0,4,0"
                    VerticalAlignment="Center"/>
+
         <TextBlock x:Name="DangerText" Text="INSIGNIFICANT"
                    FontFamily="Courier New" FontSize="11"
                    Foreground="#7aaa60"
                    VerticalAlignment="Center"/>
-        <TextBlock x:Name="CautionText" Text="" 
+
+        <TextBlock x:Name="CautionText" Text=""
                    FontFamily="Courier New" FontSize="11"
                    Foreground="#cc8820" Margin="4,0,0,0"
                    VerticalAlignment="Center"/>
-        <TextBlock Text=" | " FontFamily="Courier New"
-                   FontSize="11" Foreground="#4a4a5a"
+
+        <TextBlock x:Name="DangerLevelText" Text="0/100"
+                   FontFamily="Courier New" FontSize="11"
+                   Foreground="#9a7a9a" Margin="8,0,0,0"
                    VerticalAlignment="Center"/>
+
+        <Rectangle Width="1" Fill="#6a6a7a"
+                   Margin="6,2,6,2"
+                   VerticalAlignment="Stretch"/>
+
         <TextBlock x:Name="StatusText" Text=""
                    FontFamily="Courier New" FontSize="11"
                    Foreground="#c8c8b0"

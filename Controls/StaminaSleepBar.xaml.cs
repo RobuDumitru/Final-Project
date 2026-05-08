@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media;
 
 namespace LostInAForgottenCity.Controls
@@ -14,19 +15,7 @@ namespace LostInAForgottenCity.Controls
         public static readonly DependencyProperty MaxSegmentsProperty =
             DependencyProperty.Register(
                 "MaxSegments", typeof(int), typeof(StaminaSleepBar),
-                new PropertyMetadata(5, OnPropertyChanged));
-
-        public int Value
-        {
-            get { return (int)GetValue(ValueProperty); }
-            set { SetValue(ValueProperty, value); }
-        }
-
-        public int MaxSegments
-        {
-            get { return (int)GetValue(MaxSegmentsProperty); }
-            set { SetValue(MaxSegmentsProperty, value); }
-        }
+                new PropertyMetadata(10, OnPropertyChanged));
 
         public static readonly DependencyProperty SleepValueProperty =
             DependencyProperty.Register(
@@ -37,6 +26,18 @@ namespace LostInAForgottenCity.Controls
             DependencyProperty.Register(
                 "IsSleepVisible", typeof(bool), typeof(StaminaSleepBar),
                 new PropertyMetadata(true, OnPropertyChanged));
+
+        public int Value
+        {
+            get => (int)GetValue(ValueProperty);
+            set => SetValue(ValueProperty, value);
+        }
+
+        public int MaxSegments
+        {
+            get => (int)GetValue(MaxSegmentsProperty);
+            set => SetValue(MaxSegmentsProperty, value);
+        }
 
         public int SleepValue
         {
@@ -65,14 +66,10 @@ namespace LostInAForgottenCity.Controls
 
         private void UpdateVisual()
         {
-            // Step 1: Clear both panels
             StaminaPanel.Children.Clear();
             SleepPanel.Children.Clear();
 
-            // Step 2: Generate stamina symbols
-            // ▲ = full (i < Value)
-            // △ = empty (i >= Value)
-            // Loop from 0 to MaxSegments
+            // Stamina
             for (int i = 0; i < MaxSegments; i++)
             {
                 var symbol = new TextBlock
@@ -84,7 +81,7 @@ namespace LostInAForgottenCity.Controls
                     Margin = new Thickness(1, 0, 1, 0)
                 };
 
-                if (i < Value)
+                if (i >= MaxSegments - Value)
                 {
                     symbol.Text = "▲";
                     symbol.Foreground = new SolidColorBrush(
@@ -94,53 +91,55 @@ namespace LostInAForgottenCity.Controls
                 {
                     symbol.Text = "△";
                     symbol.Foreground = new SolidColorBrush(
-                        Color.FromRgb(0x30, 0x50, 0x30));
+                        Color.FromRgb(0x60, 0xaa, 0x60));
                 }
 
                 StaminaPanel.Children.Add(symbol);
             }
 
-            // Step 3: Show/hide sleep panel
-            // SleepPanel.Visibility = IsSleepVisible ? 
-            //     Visibility.Visible : Visibility.Collapsed
-            SleepPanel.Visibility = IsSleepVisible ?
-                Visibility.Visible : Visibility.Collapsed;
+            SleepPanel.Visibility = IsSleepVisible
+                ? Visibility.Visible
+                : Visibility.Collapsed;
 
-            // Step 4: Generate sleep symbols if visible
-            // ¿ = full (i >= (100 - SleepValue) / 10)
-            // ░ = empty
-            // 10 total slots
             if (IsSleepVisible)
             {
-                int sleepThreshold = (100 - SleepValue) / 10;
-                for (int i = 0; i < 10; i++)
+                const int totalSleepSymbols = 20;
+                int sleepFilled = (SleepValue * totalSleepSymbols + 50) / 100;
+                sleepFilled = Math.Clamp(sleepFilled, 0, totalSleepSymbols);
+                int sleepEmpty = totalSleepSymbols - sleepFilled;
+
+                var sleepTrack = new TextBlock
                 {
-                    var symbol = new TextBlock
-                    {
-                        FontFamily = new FontFamily("Courier New"),
-                        FontSize = 14,
-                        Width = 16,
-                        TextAlignment = TextAlignment.Center,
-                        Margin = new Thickness(1, 0, 1, 0)
-                    };
+                    FontFamily = new FontFamily("Courier New"),
+                    FontSize = 14,
+                    TextAlignment = TextAlignment.Left,
+                    Margin = new Thickness(0),
+                    TextWrapping = TextWrapping.NoWrap
+                };
 
-                    int sleepFilled = SleepValue / 10;
-                    if (i >= sleepThreshold)
+                if (sleepEmpty > 0)
+                {
+                    sleepTrack.Inlines.Add(new Run
                     {
-                        symbol.Text = "¿";
-                        symbol.Foreground = new SolidColorBrush(
-                            Color.FromRgb(0x60, 0x60, 0xaa));
-                    }
-                    else
-                    {
-                        symbol.Text = "░";
-                        symbol.Foreground = new SolidColorBrush(
-                            Color.FromRgb(0x30, 0x30, 0x50));
-                    }
-
-                    SleepPanel.Children.Add(symbol);
+                        Text = new string('░', sleepEmpty),
+                        Foreground = new SolidColorBrush(Color.FromRgb(0x30, 0x30, 0x50))
+                    });
                 }
+
+                if (sleepFilled > 0)
+                {
+                    sleepTrack.Inlines.Add(new Run
+                    {
+                        Text = new string('¿', sleepFilled),
+                        Foreground = new SolidColorBrush(Color.FromRgb(0x60, 0x60, 0xaa))
+                    });
+                }
+
+                SleepPanel.Children.Add(sleepTrack);
             }
+
+            StaminaLabel.Text = $"{Value}/{MaxSegments}";
+            SleepLabel.Text = $"{SleepValue}%";
         }
     }
 }
