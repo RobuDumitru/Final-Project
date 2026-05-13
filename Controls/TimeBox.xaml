@@ -1,0 +1,81 @@
+<UserControl x:Class="LostInAForgottenCity.Controls.TimeBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>   <!-- time/date -->
+            <ColumnDefinition Width="Auto"/> <!-- separator -->
+            <ColumnDefinition Width="*"/>   <!-- day counter -->
+            <ColumnDefinition Width="Auto"/> <!-- separator -->
+            <ColumnDefinition Width="*"/>   <!-- weather -->
+        </Grid.ColumnDefinitions>
+
+        <!-- LEFT: Date + Time + Period -->
+        <StackPanel Grid.Column="0" VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+            <TextBlock x:Name="DateText" Text="12/06/2012"
+                       FontFamily="Courier New" FontSize="11"
+                       Foreground="#8a8a7a"
+                       HorizontalAlignment="Center"/>
+            <TextBlock x:Name="TimeText" Text="15:00"
+                       FontFamily="Courier New" FontSize="24"
+                       Foreground="#c8c8b0"
+                       HorizontalAlignment="Center"/>
+            <TextBlock x:Name="PeriodText" Text="Afternoon"
+                       FontFamily="Courier New" FontSize="11"
+                       Foreground="#8a8a7a"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Separator -->
+        <Rectangle Grid.Column="1" Width="1"
+                   Fill="#3a3a4a" Margin="8,4,8,4"/>
+
+        <!-- CENTER: Day counter + Curse -->
+        <StackPanel Grid.Column="2" VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+            <TextBlock Text="DAY" FontFamily="Courier New"
+                       FontSize="11" Foreground="#8a8a7a"
+                       HorizontalAlignment="Center"/>
+            <TextBlock x:Name="DayText" Text="1"
+                       FontFamily="Courier New" FontSize="28"
+                       Foreground="#c8c8b0"
+                       HorizontalAlignment="Center"/>
+            <TextBlock x:Name="CurseText" Text=""
+                       FontFamily="Courier New" FontSize="10"
+                       Foreground="#aa4040"
+                       HorizontalAlignment="Center"
+                       Visibility="Collapsed"/>
+        </StackPanel>
+
+        <!-- Separator -->
+        <Rectangle Grid.Column="3" Width="1"
+                   Fill="#3a3a4a" Margin="8,4,8,4"/>
+
+        <!-- RIGHT: Weather + Temperature + Hazard -->
+        <StackPanel Grid.Column="4" VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+            <TextBlock x:Name="WeatherText" Text="Foggy"
+                       FontFamily="Courier New" FontSize="13"
+                       Foreground="#8a8a7a"
+                       HorizontalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+                <TextBlock x:Name="TempText" Text="8°C"
+                           FontFamily="Courier New" FontSize="13"
+                           Foreground="#c8c8b0"/>
+                <TextBlock x:Name="FeelsText" Text="  Chilly"
+                           FontFamily="Courier New" FontSize="13"
+                           Foreground="#8a8a7a"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+                <TextBlock Text="Hazard: " FontFamily="Courier New"
+                           FontSize="11" Foreground="#6a6a5a"/>
+                <TextBlock x:Name="HazardText" Text="None"
+                           FontFamily="Courier New" FontSize="11"
+                           Foreground="#7aaa60"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

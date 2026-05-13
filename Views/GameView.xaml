@@ -6,7 +6,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="120"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="100"/>
+            <RowDefinition Height="120"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -15,7 +15,9 @@
         </Grid.ColumnDefinitions>
 
         <!-- ═══ TOP BAR ═══ -->
-        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+        <Grid Grid.Row="0"
+              Grid.Column="0"
+              Grid.ColumnSpan="2"
               Background="#1a1a2a">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
@@ -24,11 +26,15 @@
             </Grid.ColumnDefinitions>
 
             <!-- MIND BOX -->
-            <Border Grid.Column="0" BorderBrush="#9a7a9a"
-                    BorderThickness="1" Margin="8,4,4,4">
+            <Border Grid.Column="0"
+                    BorderBrush="#9a7a9a"
+                    BorderThickness="1"
+                    Margin="8,4,4,4">
                 <Grid>
-                    <TextBlock Text="MIND" FontFamily="Courier New"
-                               FontSize="10" FontWeight="SemiBold"
+                    <TextBlock Text="MIND"
+                               FontFamily="Courier New"
+                               FontSize="10"
+                               FontWeight="SemiBold"
                                Foreground="#9a7a9a"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Top"
@@ -51,37 +57,48 @@
             </Border>
 
             <!-- SPIRIT BOX -->
-            <Border Grid.Column="1" BorderBrush="#c8a8d0"
-                    BorderThickness="1" Margin="4,4,4,4">
+            <Border Grid.Column="1"
+                    BorderBrush="#c8a8d0"
+                    BorderThickness="1"
+                    Margin="4,4,4,4">
                 <Grid>
-                    <TextBlock Text="SPIRIT" FontFamily="Courier New"
-                               FontSize="10" FontWeight="SemiBold"
+                    <TextBlock Text="SPIRIT"
+                               FontFamily="Courier New"
+                               FontSize="10"
+                               FontWeight="SemiBold"
                                Foreground="#c8a8d0"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Top"
                                Margin="0,2,0,0"/>
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
-                        <controls:SoulBar Value="25" MaxValue="100"/>
-                        <controls:ResistanceBar Value="10" MaxValue="30"
+                        <controls:SoulBar Value="25"
+                                          MaxValue="100"/>
+                        <controls:ResistanceBar Value="10"
+                                                MaxValue="30"
                                                 Margin="0,6,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- BODY BOX -->
-            <Border Grid.Column="2" BorderBrush="#aa6060"
-                    BorderThickness="1" Margin="4,4,8,4">
+            <Border Grid.Column="2"
+                    BorderBrush="#aa6060"
+                    BorderThickness="1"
+                    Margin="4,4,8,4">
                 <Grid>
-                    <TextBlock Text="BODY" FontFamily="Courier New"
-                               FontSize="10" FontWeight="SemiBold"
+                    <TextBlock Text="BODY"
+                               FontFamily="Courier New"
+                               FontSize="10"
+                               FontWeight="SemiBold"
                                Foreground="#aa6060"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Top"
                                Margin="0,2,0,0"/>
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
-                        <controls:HpBar Value="10" MaxSegments="20"/>
+                        <controls:HpBar Value="10"
+                                        MaxSegments="20"/>
                         <controls:StaminaSleepBar Value="5"
                                                   MaxSegments="10"
                                                   SleepValue="50"
@@ -93,23 +110,28 @@
         </Grid>
 
         <!-- ═══ MAP ═══ -->
-        <Rectangle Fill="#0d1a0d" Grid.Row="1" Grid.Column="0"/>
+        <Rectangle Fill="#0d1a0d"
+                   Grid.Row="1"
+                   Grid.Column="0"/>
 
         <!-- ═══ CONSOLE ═══ -->
-        <Rectangle Fill="#1a0d0d" Grid.Row="1" Grid.Column="1"/>
+        <Rectangle Fill="#1a0d0d"
+                   Grid.Row="1"
+                   Grid.Column="1"/>
 
         <!-- ═══ BOTTOM BAR ═══ -->
-        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+        <Grid Grid.Row="2"
+              Grid.Column="0"
+              Grid.ColumnSpan="2"
               Background="#1a1a2a">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Separator line -->
-            <Rectangle Grid.Row="0" Fill="#3a3a4a"/>
+            <Rectangle Grid.Row="0"
+                       Fill="#3a3a4a"/>
 
-            <!-- Bottom bar content -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -117,86 +139,199 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- LEFT: Navigation buttons -->
-                <StackPanel Grid.Column="0" Orientation="Vertical"
-                            VerticalAlignment="Center"
-                            Margin="15,0,0,0">
-                    <StackPanel Orientation="Horizontal">
-                        <Button x:Name="ObjectivesBtn"
-                                Content="  OBJECTIVES"
-                                FontFamily="Courier New" FontSize="13"
-                                Background="Transparent" BorderThickness="0"
-                                Foreground="#7aaa60" Cursor="Hand"
-                                MouseEnter="MenuButton_MouseEnter"
-                                MouseLeave="MenuButton_MouseLeave"/>
-                        <Button x:Name="CollectionsBtn"
-                                Content="  COLLECTIONS"
-                                FontFamily="Courier New" FontSize="13"
-                                Background="Transparent" BorderThickness="0"
-                                Foreground="#7aaa60" Cursor="Hand"
-                                Margin="15,0,0,0"
-                                MouseEnter="MenuButton_MouseEnter"
-                                MouseLeave="MenuButton_MouseLeave"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <Button x:Name="HistoryBtn"
-                                Content="  HISTORY"
-                                FontFamily="Courier New" FontSize="13"
-                                Background="Transparent" BorderThickness="0"
-                                Foreground="#7aaa60" Cursor="Hand"
-                                MouseEnter="MenuButton_MouseEnter"
-                                MouseLeave="MenuButton_MouseLeave"/>
-                        <Button x:Name="PauseBtn"
-                                Content="  PAUSE"
-                                FontFamily="Courier New" FontSize="13"
-                                Background="Transparent" BorderThickness="0"
-                                Foreground="#7aaa60" Cursor="Hand"
-                                Margin="15,0,0,0"
-                                MouseEnter="MenuButton_MouseEnter"
-                                MouseLeave="MenuButton_MouseLeave"/>
-                    </StackPanel>
-                </StackPanel>
+                <Grid.Resources>
+                    <Style x:Key="ConsoleButton"
+                           TargetType="Button">
+                        <Setter Property="Background"
+                                Value="Transparent"/>
+                        <Setter Property="BorderThickness"
+                                Value="0"/>
+                        <Setter Property="Foreground"
+                                Value="#7aaa60"/>
+                        <Setter Property="FontFamily"
+                                Value="Courier New"/>
+                        <Setter Property="FontSize"
+                                Value="13"/>
+                        <Setter Property="Cursor"
+                                Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="Transparent">
+                                        <TextBlock x:Name="ButtonText"
+                                                   Text="{TemplateBinding Content}"
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   FontFamily="{TemplateBinding FontFamily}"
+                                                   FontSize="{TemplateBinding FontSize}"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver"
+                                                 Value="True">
+                                            <Setter TargetName="ButtonText"
+                                                    Property="Foreground"
+                                                    Value="#c8ff96"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
 
-                <!-- CENTER: Clock + Weather -->
-                <StackPanel Grid.Column="1" VerticalAlignment="Center"
-                            HorizontalAlignment="Center">
-                    <Button x:Name="ClockBtn"
-                            Content="Day 1 — 15:00"
-                            FontFamily="Courier New" FontSize="15"
-                            Background="Transparent" BorderThickness="0"
-                            Foreground="#c8c8b0" Cursor="Hand"
-                            Click="ClockBtn_Click"
-                            MouseEnter="MenuButton_MouseEnter"
-                            MouseLeave="MenuButton_MouseLeave"/>
-                    <Button x:Name="WeatherBtn"
-                            Content="Day — Foggy"
-                            FontFamily="Courier New" FontSize="12"
-                            Background="Transparent" BorderThickness="0"
-                            Foreground="#8a8a7a" Cursor="Hand"
-                            Click="WeatherBtn_Click"
-                            MouseEnter="MenuButton_MouseEnter"
-                            MouseLeave="MenuButton_MouseLeave"/>
-                </StackPanel>
+                    <Style x:Key="ClockButton"
+                           TargetType="Button">
+                        <Setter Property="Background"
+                                Value="Transparent"/>
+                        <Setter Property="BorderThickness"
+                                Value="0"/>
+                        <Setter Property="Cursor"
+                                Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="Transparent">
+                                        <TextBlock x:Name="ButtonText"
+                                                   Text="{TemplateBinding Content}"
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   FontFamily="{TemplateBinding FontFamily}"
+                                                   FontSize="{TemplateBinding FontSize}"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver"
+                                                 Value="True">
+                                            <Setter TargetName="ButtonText"
+                                                    Property="Foreground"
+                                                    Value="#c8ff96"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Grid.Resources>
 
-                <!-- RIGHT: Relic counter + Inventory -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal"
-                            VerticalAlignment="Center"
-                            Margin="0,0,15,0">
-                    <StackPanel VerticalAlignment="Center"
-                                Margin="0,0,10,0">
-                        <TextBlock Text="RELICS"
-                                   FontFamily="Courier New" FontSize="11"
+                <!-- LEFT: Navigation buttons in box -->
+                <Border Grid.Column="0"
+                        BorderBrush="#7aaa60"
+                        BorderThickness="1"
+                        Margin="8,4,4,4">
+                    <Grid>
+                        <TextBlock Text="MENU"
+                                   FontFamily="Courier New"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="#7aaa60"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Top"
+                                   Margin="0,2,0,0"/>
+                        <StackPanel VerticalAlignment="Center"
+                                    Margin="8,14,8,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0"
+                                        x:Name="ObjectivesBtn"
+                                        Content="  OBJECTIVES"
+                                        Style="{StaticResource ConsoleButton}"
+                                        MouseEnter="MenuButton_MouseEnter"
+                                        MouseLeave="MenuButton_MouseLeave"/>
+                                <Button Grid.Column="1"
+                                        x:Name="CollectionsBtn"
+                                        Content="  COLLECTIONS"
+                                        Style="{StaticResource ConsoleButton}"
+                                        MouseEnter="MenuButton_MouseEnter"
+                                        MouseLeave="MenuButton_MouseLeave"/>
+                            </Grid>
+                            <Grid Margin="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0"
+                                        x:Name="HistoryBtn"
+                                        Content="  HISTORY"
+                                        Style="{StaticResource ConsoleButton}"
+                                        MouseEnter="MenuButton_MouseEnter"
+                                        MouseLeave="MenuButton_MouseLeave"/>
+                                <Button Grid.Column="1"
+                                        x:Name="PauseBtn"
+                                        Content="  PAUSE"
+                                        Style="{StaticResource ConsoleButton}"
+                                        MouseEnter="MenuButton_MouseEnter"
+                                        MouseLeave="MenuButton_MouseLeave"/>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- CENTER: Time Box -->
+                <Border Grid.Column="1"
+                        BorderBrush="#c8c8b0"
+                        BorderThickness="1"
+                        Margin="4,4,4,4">
+                    <Grid>
+                        <TextBlock Text="TIME"
+                                FontFamily="Courier New"
+                                   FontSize="10"
+                                FontWeight="SemiBold"
+                                   Foreground="#c8c8b0"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Top"
+                                   Margin="0,2,0,0"/>
+                        <controls:TimeBox Margin="4,14,4,4"
+                                          Day="1"
+                                Hour="15"
+                                Minute="0"
+                                          Date="12/06/2012"
+                                          Weather="Foggy"
+                                          Temperature="8"
+                                          FeelsLike="Chilly"
+                                          Hazard="None"
+                                          IsCurseVisible="False"/>
+                    </Grid>
+                </Border>
+
+                <!-- RIGHT: Relic counter + Inventory in box -->
+                <Border Grid.Column="2"
+                        BorderBrush="#c8a840"
+                        BorderThickness="1"
+                        Margin="4,4,8,4">
+                    <Grid>
+                        <TextBlock Text="INVENTORY"
+                                   FontFamily="Courier New"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
                                    Foreground="#c8a840"
-                                   HorizontalAlignment="Center"/>
-                        <TextBlock x:Name="RelicCount" Text="0"
-                                   FontFamily="Courier New" FontSize="16"
-                                   Foreground="#c8a840"
-                                   HorizontalAlignment="Center"/>
-                    </StackPanel>
-                    <controls:InventoryBar x:Name="Inventory"
-                                           SlotCount="6"
-                                           VerticalAlignment="Center"/>
-                </StackPanel>
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Top"
+                                   Margin="0,2,0,0"/>
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Margin="8,14,8,4">
+                            <StackPanel VerticalAlignment="Center"
+                                        Margin="0,0,8,0">
+                                <TextBlock Text="RELICS"
+                                           FontFamily="Courier New"
+                                           FontSize="11"
+                                           Foreground="#c8a840"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="RelicCount"
+                                           Text="0"
+                                           FontFamily="Courier New"
+                                           FontSize="16"
+                                           Foreground="#c8a840"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <controls:InventoryBar x:Name="Inventory"
+                                                   SlotCount="12"
+                                                   VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
         </Grid>
     </Grid>
