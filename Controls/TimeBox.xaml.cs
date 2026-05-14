@@ -134,15 +134,38 @@ namespace LostInAForgottenCity.Controls
 
             // ── Weather ──
             WeatherText.Text = Weather;
+            WeatherText.Text = $"{GetWeatherIcon(Weather)} {Weather}";
 
-            // ── Temperature color ──
+            // ── Temperature + Feels Like ──
             var tempColor = GetTemperatureColor(Temperature);
-            TempText.Text = $"{Temperature}°C  {FeelsLike}";
+            TempText.Text = $"{Temperature}°C";
             TempText.Foreground = new SolidColorBrush(tempColor);
+            FeelsText.Text = $"  {FeelsLike}";
+            FeelsText.Foreground = new SolidColorBrush(tempColor);
 
             // ── Hazard color ──
             HazardText.Text = Hazard;
             HazardText.Foreground = new SolidColorBrush(GetHazardColor(Hazard));
+        }
+
+        private string GetWeatherIcon(string weather)
+        {
+            return weather switch
+            {
+                "Clear" => "☀",
+                "Sunny" => "☀",
+                "Cloudy" => "☁",
+                "Partly Cloudy" => "⛅",
+                "Foggy" => "🌫",
+                "Overcast" => "☁",
+                "Rainy" => "🌧",
+                "Heavy Rain" => "⛈",
+                "Stormy" => "⛈",
+                "Snowy" => "❄",
+                "Windy" => "💨",
+                "Thunder" => "⚡",
+                _ => "~"
+            };
         }
 
         private string GetPeriod(int hour)
@@ -185,11 +208,11 @@ namespace LostInAForgottenCity.Controls
         {
             return hazard switch
             {
-                "None"           => Color.FromRgb(0x7a, 0xaa, 0x60), // Green
-                "Stale Air"      => Color.FromRgb(0xc8, 0xc8, 0x40), // Yellow
+                "None" => Color.FromRgb(0x7a, 0xaa, 0x60), // Green
+                "Stale Air" => Color.FromRgb(0xc8, 0xc8, 0x40), // Yellow
                 "Low Visibility" => Color.FromRgb(0xc8, 0x78, 0x40), // Orange
-                "Toxic Air"      => Color.FromRgb(0xcc, 0x40, 0x40), // Red
-                "Soul Trap"      => Color.FromRgb(0x9a, 0x40, 0xcc), // Purple
+                "Toxic Air" => Color.FromRgb(0xcc, 0x40, 0x40), // Red
+                "Soul Trap" => Color.FromRgb(0x9a, 0x40, 0xcc), // Purple
                 _ => Color.FromRgb(0x7a, 0xaa, 0x60)
             };
         }
