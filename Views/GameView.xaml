@@ -10,7 +10,7 @@
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="350"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -110,9 +110,12 @@
         </Grid>
 
         <!-- ═══ MAP ═══ -->
-        <Rectangle Fill="#0d1a0d"
-                   Grid.Row="1"
-                   Grid.Column="0"/>
+        <Border Grid.Row="1"
+                Grid.Column="0"
+                BorderBrush="#2a3a2a"
+                BorderThickness="0,0,1,0">
+            <controls:MapPanel x:Name="GameMap"/>
+        </Border>
 
         <!-- ═══ CONSOLE ═══ -->
         <Rectangle Fill="#1a0d0d"
@@ -275,17 +278,17 @@
                         Margin="4,4,4,4">
                     <Grid>
                         <TextBlock Text="TIME"
-                                FontFamily="Courier New"
+                                   FontFamily="Courier New"
                                    FontSize="10"
-                                FontWeight="SemiBold"
+                                   FontWeight="SemiBold"
                                    Foreground="#c8c8b0"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Top"
                                    Margin="0,2,0,0"/>
                         <controls:TimeBox Margin="4,14,4,4"
                                           Day="1"
-                                Hour="15"
-                                Minute="0"
+                                          Hour="15"
+                                          Minute="0"
                                           Date="12/06/2012"
                                           Weather="Foggy"
                                           Temperature="8"

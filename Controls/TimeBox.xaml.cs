@@ -152,7 +152,7 @@ namespace LostInAForgottenCity.Controls
         {
             return weather switch
             {
-                "Clear" => "☀",
+                "Clear" => "☼",
                 "Sunny" => "☀",
                 "Cloudy" => "☁",
                 "Partly Cloudy" => "⛅",
