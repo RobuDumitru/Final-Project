@@ -38,7 +38,7 @@
         <Image Source="/Assets/menu_background.png" Stretch="UniformToFill"/>
         <Rectangle Fill="#80000000"/>
 
-        <TextBlock Text="Lost in a Forgotten City"
+        <TextBlock Text="Foggy Wispers"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Top"
                    Margin="0,60,0,0"
