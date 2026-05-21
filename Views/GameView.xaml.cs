@@ -14,8 +14,8 @@ namespace LostInAForgottenCity.Views
         }
 
         private void LoadTestMap()
-{
-    var nodes = new List<LostInAForgottenCity.Controls.MapNode>
+        {
+            var nodes = new List<LostInAForgottenCity.Controls.MapNode>
     {
         new() { Id="outskirts", Name="Outskirts", BaseIcon="🏚",
                 State=Controls.LocationState.Visited,
@@ -48,13 +48,9 @@ namespace LostInAForgottenCity.Views
                 State=Controls.LocationState.Undiscovered,
                 Type=Controls.LocationType.ExpeditionPoint,
                 X=180, Y=140 },
-        new() { Id="bridge_a", Name="Bridge A", BaseIcon="🌉",
-                State=Controls.LocationState.Undiscovered,
-                Type=Controls.LocationType.Bridge,
-                X=320, Y=60 },
     };
 
-    var connections = new List<LostInAForgottenCity.Controls.MapConnection>
+            var connections = new List<LostInAForgottenCity.Controls.MapConnection>
     {
         new() { FromId="outskirts", ToId="farm" },
         new() { FromId="outskirts", ToId="church" },
@@ -63,12 +59,34 @@ namespace LostInAForgottenCity.Views
         new() { FromId="crossroads", ToId="mill" },
         new() { FromId="crossroads", ToId="houses" },
         new() { FromId="crossroads", ToId="expedition" },
-        new() { FromId="mill", ToId="bridge_a" },
-        new() { FromId="houses", ToId="bridge_a" },
     };
 
-    GameMap.LoadMap(nodes, connections, "Rural", "outskirts");
-}
+            // Add available maps for testing
+            GameMap.AddAvailableMap(new Controls.MapTab
+            {
+                Id = "suburban",
+                Title = "Suburban",
+                Type = Controls.MapType.Region,
+                IsUnlocked = true,
+                Nodes = new(),
+                Connections = new()
+            });
+
+            GameMap.AddAvailableMap(new Controls.MapTab
+            {
+                Id = "outskirts_location",
+                Title = "Outskirts",
+                Type = Controls.MapType.Location,
+                IsUnlocked = true,
+                Nodes = new(),
+                Connections = new()
+            });
+
+            GameMap.LoadMap(nodes, connections,
+                "rural", "Rural",
+                Controls.MapType.Region,
+                "outskirts");
+        }
 
         private void MenuButton_MouseEnter(object sender, MouseEventArgs e)
         {

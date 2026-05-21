@@ -33,27 +33,118 @@
             </Setter.Value>
          </Setter>
       </Style>
+
+      <Style x:Key="TabButton"
+            TargetType="Button">
+         <Setter Property="Background"
+               Value="Transparent"/>
+         <Setter Property="BorderBrush"
+               Value="#2a3a2a"/>
+         <Setter Property="BorderThickness"
+               Value="1"/>
+         <Setter Property="Cursor"
+               Value="Hand"/>
+         <Setter Property="Padding"
+               Value="6,2"/>
+         <Setter Property="Margin"
+               Value="0,0,3,0"/>
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="Button">
+                  <Border x:Name="TabBorder"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          Padding="{TemplateBinding Padding}">
+                     <ContentPresenter/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                     <Trigger Property="IsMouseOver"
+                           Value="True">
+                        <Setter TargetName="TabBorder"
+                                Property="BorderBrush"
+                                Value="#7aaa60"/>
+                     </Trigger>
+                  </ControlTemplate.Triggers>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
    </UserControl.Resources>
+
    <Grid Background="#0a0f0a">
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
+         <!-- maps button + tabs -->
          <RowDefinition Height="*"/>
+         <!-- map canvas -->
          <RowDefinition Height="Auto"/>
+         <!-- legend -->
       </Grid.RowDefinitions>
 
-      <!-- Section title -->
-      <TextBlock Grid.Row="0"
-                 x:Name="SectionTitle"
-                 Text="RURAL"
-                 FontFamily="Courier New"
-                 FontSize="11"
-                 Foreground="#4a6a4a"
-                 HorizontalAlignment="Center"
-                 Margin="0,6,0,4"/>
+      <!-- TOP: Maps button + tabs -->
+      <Grid Grid.Row="0"
+            Background="#0d140d">
+         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- button row -->
+            <RowDefinition Height="Auto"/>
+            <!-- tabs row -->
+         </Grid.RowDefinitions>
 
-      <!-- Map canvas with drag/zoom -->
+         <!-- Maps button + section title -->
+         <Grid Grid.Row="0"
+               Margin="4,4,4,2">
+            <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0"
+                    x:Name="OpenMapsBtn"
+                    Content="+ MAPS"
+                    Style="{StaticResource LegendButton}"
+                    Click="OpenMapsBtn_Click"
+                    Foreground="#7aaa60"
+                    FontSize="11"/>
+            <TextBlock Grid.Column="1"
+                       x:Name="SectionTitle"
+                       Text="RURAL"
+                       FontFamily="Courier New"
+                       FontSize="11"
+                       Foreground="#4a6a4a"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+         </Grid>
+
+         <!-- Tabs row -->
+         <ScrollViewer Grid.Row="1"
+                       HorizontalScrollBarVisibility="Hidden"
+                       VerticalScrollBarVisibility="Disabled"
+                       Margin="4,0,4,4">
+            <StackPanel x:Name="TabsPanel"
+                        Orientation="Horizontal"/>
+         </ScrollViewer>
+
+         <!-- Available maps popup -->
+         <Border x:Name="MapsPopup"
+                 Grid.Row="0"
+               Grid.RowSpan="2"
+                 Background="#0d140d"
+                 BorderBrush="#2a3a2a"
+                 BorderThickness="1"
+                 Padding="6"
+                 Visibility="Collapsed"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Top"
+                 Margin="4,20,0,0"
+                 Panel.ZIndex="10">
+            <StackPanel x:Name="AvailableMapsPanel"/>
+         </Border>
+      </Grid>
+
+      <!-- Map canvas -->
       <Border Grid.Row="1"
-              ClipToBounds="True"
+            ClipToBounds="True"
               Background="#0a0f0a"
               MouseDown="MapBorder_MouseDown"
               MouseMove="MapBorder_MouseMove"
@@ -64,10 +155,10 @@
                <TransformGroup>
                   <ScaleTransform x:Name="MapScale"
                                   ScaleX="1"
-                                  ScaleY="1"/>
+                        ScaleY="1"/>
                   <TranslateTransform x:Name="MapTranslate"
                                       X="10"
-                                      Y="10"/>
+                        Y="10"/>
                </TransformGroup>
             </Canvas.RenderTransform>
          </Canvas>
@@ -75,133 +166,133 @@
 
       <!-- Legend -->
       <Border Grid.Row="2"
-              BorderBrush="#2a3a2a"
+            BorderBrush="#2a3a2a"
               BorderThickness="0,1,0,0"
               Background="#0a0f0a"
               Padding="8,6">
          <StackPanel>
-            <!-- Legend header with collapse button -->
             <Grid Margin="0,0,0,4">
                <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                </Grid.ColumnDefinitions>
                <TextBlock Grid.Column="0"
-                          Text="LEGEND"
+                     Text="LEGEND"
                           FontFamily="Courier New"
-                          FontSize="10"
+                     FontSize="10"
                           Foreground="#4a6a4a"
-                          FontWeight="SemiBold"
+                     FontWeight="SemiBold"
                           VerticalAlignment="Center"/>
                <Button Grid.Column="1"
                        x:Name="LegendToggleBtn"
                        Content="▼"
-                       FontFamily="Courier New"
-                       FontSize="10"
-                       Background="Transparent"
-                       BorderThickness="0"
-                       Foreground="#4a6a4a"
-                       Cursor="Hand"
-                       Click="LegendToggleBtn_Click"
-                       Style="{StaticResource LegendButton}"/>
+                       Style="{StaticResource LegendButton}"
+                       Click="LegendToggleBtn_Click"/>
             </Grid>
-
-            <!-- Legend content — collapsible -->
             <StackPanel x:Name="LegendContent">
-
-               <!-- State row -->
                <TextBlock Text="LOCATION STATE"
                           FontFamily="Courier New"
-                          FontSize="9"
+                     FontSize="9"
                           Foreground="#3a5a3a"
-                          Margin="0,0,0,2"/>
+                     Margin="0,0,0,2"/>
                <WrapPanel Margin="0,0,0,4">
                   <TextBlock Text="□ Undiscovered  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#3a4a3a"/>
                   <TextBlock Text="◈ Discovered  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#6a8a6a"/>
                   <TextBlock Text="◉ Visited  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#7aaa60"/>
                   <TextBlock Text="■ Fully Explored  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#c8c860"/>
                   <TextBlock Text="◆ Fully Looted"
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#c8a840"/>
                </WrapPanel>
-
-               <!-- Quest row -->
                <TextBlock Text="QUESTS"
                           FontFamily="Courier New"
-                          FontSize="9"
+                     FontSize="9"
                           Foreground="#3a5a3a"
-                          Margin="0,0,0,2"/>
+                     Margin="0,0,0,2"/>
                <WrapPanel Margin="0,0,0,4">
                   <TextBlock Text="★ Main Quest Active  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#ffcc00"/>
                   <TextBlock Text="☆ Main Quest Available  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#c8a840"/>
                   <TextBlock Text="◈ Side Quest Active  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#60c8c8"/>
                   <TextBlock Text="◇ Side Quest Available  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#408a8a"/>
                   <TextBlock Text="✦ Special Quest Active  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#c860c8"/>
                   <TextBlock Text="✧ Special Quest Available"
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#8a408a"/>
                </WrapPanel>
-
-               <!-- Situation row -->
                <TextBlock Text="SITUATION"
                           FontFamily="Courier New"
-                          FontSize="9"
+                     FontSize="9"
                           Foreground="#3a5a3a"
-                          Margin="0,0,0,2"/>
+                     Margin="0,0,0,2"/>
                <WrapPanel>
                   <TextBlock Text="[ ] Your Location  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#7aaa60"/>
                   <TextBlock Text="⌂ Safe Room Inside  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#60a8d0"/>
                   <TextBlock Text="▲ Danger Nearby  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#c87840"/>
                   <TextBlock Text="🔒 Locked (needs item)  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#c8c840"/>
                   <TextBlock Text="✕ Unavailable (wait)  "
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#888888"/>
                   <TextBlock Text="💀 Deadly Zone"
                              FontFamily="Courier New"
-                             FontSize="9"
+                        FontSize="9"
                              Foreground="#cc4040"/>
+               </WrapPanel>
+               <TextBlock Text="MAP TABS"
+                          FontFamily="Courier New"
+                     FontSize="9"
+                          Foreground="#3a5a3a"
+                     Margin="0,0,0,2"/>
+               <WrapPanel Margin="0,0,0,4">
+                  <TextBlock Text="▦ REGION — shows locations  "
+                             FontFamily="Courier New"
+                        FontSize="9"
+                             Foreground="#4a8a4a"/>
+                  <TextBlock Text="◎ Location — shows landmarks"
+                             FontFamily="Courier New"
+                        FontSize="9"
+                             Foreground="#4a6a8a"/>
                </WrapPanel>
             </StackPanel>
          </StackPanel>
