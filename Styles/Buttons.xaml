@@ -1,0 +1,122 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- BASE CONSOLE BUTTON STYLE                                       -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- All console-like buttons derive from this base style.           -->
+    <!-- It contains the shared hover template and common properties.    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <Style x:Key="ConsoleButtonBase" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="#7aaa60"/>
+        <Setter Property="FontFamily" Value="Courier New"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="Transparent">
+                        <TextBlock x:Name="ButtonText"
+                                   Text="{TemplateBinding Content}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   FontFamily="{TemplateBinding FontFamily}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ButtonText" Property="Foreground" Value="#c8ff96"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- MENU BUTTON                                                      -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- Large menu buttons (18pt, left-aligned) for the main menu.      -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <Style x:Key="ConsoleButton" TargetType="Button" BasedOn="{StaticResource ConsoleButtonBase}">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Margin" Value="0,5,0,5"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- GAME SCREEN BUTTON                                              -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- Standard game screen buttons (13pt) for bottom menu bar.        -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <Style x:Key="GameScreenButton" TargetType="Button" BasedOn="{StaticResource ConsoleButtonBase}">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- CLOCK BUTTON                                                     -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- Clock/info button with center-aligned text.                     -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <Style x:Key="ClockButton" TargetType="Button" BasedOn="{StaticResource ConsoleButtonBase}">
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="FontSize" Value="14"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LEGEND BUTTON                                                    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- Map legend buttons (10pt, green theme).                         -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <Style x:Key="LegendButton" TargetType="Button" BasedOn="{StaticResource ConsoleButtonBase}">
+        <Setter Property="Foreground" Value="#4a6a4a"/>
+        <Setter Property="FontSize" Value="10"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- TAB BUTTON                                                       -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- Map panel tab buttons with border styling.                      -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <Style x:Key="TabButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="#2a3a2a"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Padding" Value="6,2"/>
+        <Setter Property="Margin" Value="0,0,3,0"/>
+        <Setter Property="FontFamily" Value="Courier New"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="#7aaa60"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="TabBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="TabBorder" Property="BorderBrush" Value="#7aaa60"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

@@ -142,79 +142,6 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Grid.Resources>
-                    <Style x:Key="ConsoleButton"
-                           TargetType="Button">
-                        <Setter Property="Background"
-                                Value="Transparent"/>
-                        <Setter Property="BorderThickness"
-                                Value="0"/>
-                        <Setter Property="Foreground"
-                                Value="#7aaa60"/>
-                        <Setter Property="FontFamily"
-                                Value="Courier New"/>
-                        <Setter Property="FontSize"
-                                Value="13"/>
-                        <Setter Property="Cursor"
-                                Value="Hand"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="Transparent">
-                                        <TextBlock x:Name="ButtonText"
-                                                   Text="{TemplateBinding Content}"
-                                                   Foreground="{TemplateBinding Foreground}"
-                                                   FontFamily="{TemplateBinding FontFamily}"
-                                                   FontSize="{TemplateBinding FontSize}"
-                                                   VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver"
-                                                 Value="True">
-                                            <Setter TargetName="ButtonText"
-                                                    Property="Foreground"
-                                                    Value="#c8ff96"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-
-                    <Style x:Key="ClockButton"
-                           TargetType="Button">
-                        <Setter Property="Background"
-                                Value="Transparent"/>
-                        <Setter Property="BorderThickness"
-                                Value="0"/>
-                        <Setter Property="Cursor"
-                                Value="Hand"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="Transparent">
-                                        <TextBlock x:Name="ButtonText"
-                                                   Text="{TemplateBinding Content}"
-                                                   Foreground="{TemplateBinding Foreground}"
-                                                   FontFamily="{TemplateBinding FontFamily}"
-                                                   FontSize="{TemplateBinding FontSize}"
-                                                   VerticalAlignment="Center"
-                                                   HorizontalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver"
-                                                 Value="True">
-                                            <Setter TargetName="ButtonText"
-                                                    Property="Foreground"
-                                                    Value="#c8ff96"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </Grid.Resources>
-
                 <!-- LEFT: Navigation buttons in box -->
                 <Border Grid.Column="0"
                         BorderBrush="#7aaa60"
@@ -239,13 +166,13 @@
                                 <Button Grid.Column="0"
                                         x:Name="ObjectivesBtn"
                                         Content="  OBJECTIVES"
-                                        Style="{StaticResource ConsoleButton}"
+                                        Style="{StaticResource GameScreenButton}"
                                         MouseEnter="MenuButton_MouseEnter"
                                         MouseLeave="MenuButton_MouseLeave"/>
                                 <Button Grid.Column="1"
                                         x:Name="CollectionsBtn"
                                         Content="  COLLECTIONS"
-                                        Style="{StaticResource ConsoleButton}"
+                                        Style="{StaticResource GameScreenButton}"
                                         MouseEnter="MenuButton_MouseEnter"
                                         MouseLeave="MenuButton_MouseLeave"/>
                             </Grid>
@@ -257,13 +184,13 @@
                                 <Button Grid.Column="0"
                                         x:Name="HistoryBtn"
                                         Content="  HISTORY"
-                                        Style="{StaticResource ConsoleButton}"
+                                        Style="{StaticResource GameScreenButton}"
                                         MouseEnter="MenuButton_MouseEnter"
                                         MouseLeave="MenuButton_MouseLeave"/>
                                 <Button Grid.Column="1"
                                         x:Name="PauseBtn"
                                         Content="  PAUSE"
-                                        Style="{StaticResource ConsoleButton}"
+                                        Style="{StaticResource GameScreenButton}"
                                         MouseEnter="MenuButton_MouseEnter"
                                         MouseLeave="MenuButton_MouseLeave"/>
                             </Grid>
