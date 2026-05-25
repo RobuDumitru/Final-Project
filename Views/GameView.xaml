@@ -1,7 +1,8 @@
 <UserControl x:Class="LostInAForgottenCity.Views.GameView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:LostInAForgottenCity.Controls">
+             xmlns:controls="clr-namespace:LostInAForgottenCity.Controls"
+             xmlns:views="clr-namespace:LostInAForgottenCity.Views">
     <Grid Background="#0a0a0f">
         <Grid.RowDefinitions>
             <RowDefinition Height="120"/>
@@ -118,9 +119,9 @@
         </Border>
 
         <!-- ═══ CONSOLE ═══ -->
-        <Rectangle Fill="#1a0d0d"
-                   Grid.Row="1"
-                   Grid.Column="1"/>
+        <views:ConsolePanel x:Name="GameConsole"
+                            Grid.Row="1"
+                Grid.Column="1"/>
 
         <!-- ═══ BOTTOM BAR ═══ -->
         <Grid Grid.Row="2"

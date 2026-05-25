@@ -1,0 +1,56 @@
+<UserControl x:Class="LostInAForgottenCity.Views.ConsolePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Background="#0d0808">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- TEXT AREA -->
+        <Border Grid.Row="0" Padding="12,8">
+            <Grid>
+                <ScrollViewer x:Name="TextScroller"
+                              VerticalScrollBarVisibility="Hidden"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="TextPanel"
+                                VerticalAlignment="Bottom"
+                                Margin="0,0,0,4"/>
+                </ScrollViewer>
+                <TextBlock x:Name="SkipHint"
+                           Text="[ click to skip ]"
+                           FontFamily="Courier New"
+                           FontSize="10"
+                           Foreground="#3a4a3a"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Bottom"
+                           Margin="0,0,4,4"
+                           Visibility="Collapsed"/>
+            </Grid>
+        </Border>
+
+        <!-- SEPARATOR -->
+        <Rectangle Grid.Row="1" Height="1"
+                   Fill="#2a1a1a" VerticalAlignment="Top"/>
+
+        <!-- OPTIONS / QTE AREA -->
+        <Border Grid.Row="1" Padding="12,6">
+            <Grid>
+                <StackPanel x:Name="OptionsPanel"
+                            Visibility="Visible"/>
+                <StackPanel x:Name="QtePanel"
+                            Visibility="Collapsed"
+                            Background="#0d0808">
+                    <TextBlock x:Name="QtePromptText"
+                               FontFamily="Courier New"
+                               FontSize="13"
+                               Foreground="#cc4040"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,6"/>
+                    <StackPanel x:Name="QteOptionsPanel"
+                                Orientation="Horizontal"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

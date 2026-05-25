@@ -11,6 +11,40 @@ namespace LostInAForgottenCity.Views
         {
             InitializeComponent();
             LoadTestMap();
+            LoadTestConsole();
+        }
+
+        private void LoadTestConsole()
+        {
+            GameConsole.AddText(
+                "You stand at the edge of the city. The fog is thick " +
+                "today, swallowing the outlines of the buildings ahead. " +
+                "Somewhere in the distance, something moves.",
+                TextType.Description,
+                onComplete: () =>
+                {
+                    GameConsole.AddText(
+                        "Stay close to the walls and don't make noise.",
+                        TextType.Gameline);
+
+                    GameConsole.AddSeparator();
+                    GameConsole.ShowOptions(
+                        new List<string>
+                        {
+                    "Move toward the city",
+                    "Examine the surroundings",
+                    "Check your belongings",
+                    "Stay and listen"
+                        },
+                        index =>
+                        {
+                            GameConsole.AddText(
+                                index == 0
+                                ? "You take your first steps into the fog..."
+                                : "You pause and take stock of your situation.",
+                                TextType.Description);
+                        });
+                });
         }
 
         private void LoadTestMap()
