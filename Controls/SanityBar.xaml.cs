@@ -34,16 +34,18 @@ namespace LostInAForgottenCity.Controls
 
         private void UpdateVisual()
         {
-            double clampedValue = Math.Max(0.0, Math.Min(100.0, Value));
-            Bar.Value = 100.0 - clampedValue;
-            PercentText.Text = $"{(int)clampedValue}%";
+            Bar.Value = Value; // remove the 100 - Value inversion
+            PercentText.Text = $"{(int)Value}%";
 
-            if (clampedValue > 60)
-                Bar.Foreground = new SolidColorBrush(Color.FromRgb(0x7a, 0xaa, 0x60));
-            else if (clampedValue > 30)
-                Bar.Foreground = new SolidColorBrush(Color.FromRgb(0xaa, 0xaa, 0x30));
+            if (Value > 60)
+                Bar.Foreground = new SolidColorBrush(
+                    Color.FromRgb(0x7a, 0xaa, 0x60));
+            else if (Value > 30)
+                Bar.Foreground = new SolidColorBrush(
+                    Color.FromRgb(0xaa, 0xaa, 0x30));
             else
-                Bar.Foreground = new SolidColorBrush(Color.FromRgb(0xaa, 0x40, 0x40));
+                Bar.Foreground = new SolidColorBrush(
+                    Color.FromRgb(0xaa, 0x40, 0x40));
         }
     }
 }

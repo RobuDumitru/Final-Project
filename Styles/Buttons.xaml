@@ -7,7 +7,7 @@
     <!-- All console-like buttons derive from this base style.           -->
     <!-- It contains the shared hover template and common properties.    -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    
+
     <Style x:Key="ConsoleButtonBase" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -19,23 +19,39 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border Background="Transparent">
-                        <TextBlock x:Name="ButtonText"
-                                   Text="{TemplateBinding Content}"
-                                   Foreground="{TemplateBinding Foreground}"
-                                   FontFamily="{TemplateBinding FontFamily}"
-                                   FontSize="{TemplateBinding FontSize}"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Arrow — hidden until hover -->
+                            <TextBlock x:Name="ArrowText"
+                                       Text="> "
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       Foreground="#c8ff96"
+                                       VerticalAlignment="Center"
+                                       Visibility="Hidden"/>
+                            <TextBlock x:Name="ButtonText"
+                                       Text="{TemplateBinding Content}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       FontFamily="{TemplateBinding FontFamily}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        </StackPanel>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ButtonText" Property="Foreground" Value="#c8ff96"/>
+                            <Setter TargetName="ArrowText"
+                                    Property="Visibility"
+                                    Value="Visible"/>
+                            <Setter TargetName="ButtonText"
+                                    Property="Foreground"
+                                    Value="#c8ff96"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
+
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- MENU BUTTON                                                      -->
@@ -118,5 +134,6 @@
             </Setter.Value>
         </Setter>
     </Style>
+
 
 </ResourceDictionary>

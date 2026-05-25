@@ -42,13 +42,16 @@
                                Margin="0,2,0,0"/>
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
-                        <controls:SanityBar Value="50"
+                        <controls:SanityBar x:Name="PlayerSanityBar"
+                                            Value="50"
                                             HorizontalAlignment="Center"
                                             Margin="0,0,0,4"/>
                         <WrapPanel>
-                            <controls:SubconsciousBar Value="5"
+                            <controls:SubconsciousBar x:Name="PlayerSubconsciousBar"
+                                                      Value="5"
                                                       MaxSlots="10"/>
-                            <controls:DangerIndicator Level="Insignificant"
+                            <controls:DangerIndicator x:Name="PlayerDangerIndicator"
+                                                      Level="Insignificant"
                                                       StatusEffect="None"
                                                       Margin="8,0,0,0"
                                                       VerticalAlignment="Center"/>
@@ -73,9 +76,11 @@
                                Margin="0,2,0,0"/>
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
-                        <controls:SoulBar Value="25"
+                        <controls:SoulBar x:Name="PlayerSoulBar"
+                                          Value="25"
                                           MaxValue="100"/>
-                        <controls:ResistanceBar Value="10"
+                        <controls:ResistanceBar x:Name="PlayerResistanceBar"
+                                                Value="10"
                                                 MaxValue="30"
                                                 Margin="0,6,0,0"/>
                     </StackPanel>
@@ -98,13 +103,15 @@
                                Margin="0,2,0,0"/>
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
-                        <controls:HpBar Value="10"
-                                        MaxSegments="20"/>
-                        <controls:StaminaSleepBar Value="5"
-                                                  MaxSegments="10"
-                                                  SleepValue="50"
-                                                  IsSleepVisible="True"
-                                                  Margin="0,6,0,0"/>
+                        <controls:HpBar x:Name="PlayerHpBar"
+                                         Value="10"
+                                         MaxSegments="20"/>
+                        <controls:StaminaSleepBar x:Name="PlayerStaminaSleepBar"
+                                                   Value="5"
+                                                   MaxSegments="10"
+                                                   SleepValue="50"
+                                                   IsSleepVisible="True"
+                                                   Margin="0,6,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -121,7 +128,60 @@
         <!-- ═══ CONSOLE ═══ -->
         <views:ConsolePanel x:Name="GameConsole"
                             Grid.Row="1"
-                Grid.Column="1"/>
+                            Grid.Column="1"/>
+
+        <!-- ═══ OVERLAY PANEL ═══ -->
+        <Grid Grid.Row="0"
+                Grid.Column="0"
+              Grid.RowSpan="3"
+                Grid.ColumnSpan="2"
+              x:Name="GameOverlay"
+              Visibility="Collapsed"
+              Background="#aa000000"
+              Panel.ZIndex="100">
+            <Border Background="#1a1a2a"
+                    BorderBrush="#3a3a4a"
+                    BorderThickness="1"
+                    MaxWidth="600"
+                    MaxHeight="500"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Title -->
+                    <TextBlock Grid.Row="0"
+                               x:Name="OverlayTitle"
+                               Text="OVERLAY"
+                               FontFamily="Courier New"
+                               FontSize="16"
+                               Foreground="#c8c8b0"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,12"/>
+
+                    <!-- Content -->
+                    <ScrollViewer Grid.Row="1"
+                                  MaxHeight="350"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ContentControl x:Name="OverlayContent"/>
+                    </ScrollViewer>
+
+                    <!-- Close button -->
+                    <Button Grid.Row="2"
+                            x:Name="OverlayCloseBtn"
+                            Content="CLOSE"
+                            Style="{StaticResource GameScreenButton}"
+                            HorizontalAlignment="Center"
+                            Margin="0,12,0,0"
+                            Click="CloseOverlay_Click"/>
+                </Grid>
+            </Border>
+        </Grid>
 
         <!-- ═══ BOTTOM BAR ═══ -->
         <Grid Grid.Row="2"
@@ -166,16 +226,14 @@
                                 </Grid.ColumnDefinitions>
                                 <Button Grid.Column="0"
                                         x:Name="ObjectivesBtn"
-                                        Content="  OBJECTIVES"
+                                        Content="OBJECTIVES"
                                         Style="{StaticResource GameScreenButton}"
-                                        MouseEnter="MenuButton_MouseEnter"
-                                        MouseLeave="MenuButton_MouseLeave"/>
+                                        Click="ObjectivesBtn_Click"/>
                                 <Button Grid.Column="1"
                                         x:Name="CollectionsBtn"
-                                        Content="  COLLECTIONS"
+                                        Content="COLLECTIONS"
                                         Style="{StaticResource GameScreenButton}"
-                                        MouseEnter="MenuButton_MouseEnter"
-                                        MouseLeave="MenuButton_MouseLeave"/>
+                                        Click="CollectionsBtn_Click"/>
                             </Grid>
                             <Grid Margin="0,8,0,0">
                                 <Grid.ColumnDefinitions>
@@ -184,16 +242,14 @@
                                 </Grid.ColumnDefinitions>
                                 <Button Grid.Column="0"
                                         x:Name="HistoryBtn"
-                                        Content="  HISTORY"
+                                        Content="HISTORY"
                                         Style="{StaticResource GameScreenButton}"
-                                        MouseEnter="MenuButton_MouseEnter"
-                                        MouseLeave="MenuButton_MouseLeave"/>
+                                        Click="HistoryBtn_Click"/>
                                 <Button Grid.Column="1"
                                         x:Name="PauseBtn"
-                                        Content="  PAUSE"
+                                        Content="PAUSE"
                                         Style="{StaticResource GameScreenButton}"
-                                        MouseEnter="MenuButton_MouseEnter"
-                                        MouseLeave="MenuButton_MouseLeave"/>
+                                        Click="PauseBtn_Click"/>
                             </Grid>
                         </StackPanel>
                     </Grid>
@@ -213,7 +269,7 @@
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Top"
                                    Margin="0,2,0,0"/>
-                        <controls:TimeBox Margin="4,14,4,4"
+                        <controls:TimeBox x:Name="TimeDisplay"
                                           Day="1"
                                           Hour="15"
                                           Minute="0"
@@ -222,7 +278,8 @@
                                           Temperature="8"
                                           FeelsLike="Chilly"
                                           Hazard="None"
-                                          IsCurseVisible="False"/>
+                                          IsCurseVisible="False"
+                                          Margin="4,14,4,4"/>
                     </Grid>
                 </Border>
 
@@ -258,7 +315,7 @@
                                            HorizontalAlignment="Center"/>
                             </StackPanel>
                             <controls:InventoryBar x:Name="Inventory"
-                                                   SlotCount="12"
+                                                   SlotCount="6"
                                                    VerticalAlignment="Center"/>
                         </StackPanel>
                     </Grid>

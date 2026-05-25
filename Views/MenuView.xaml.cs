@@ -12,25 +12,6 @@ namespace LostInAForgottenCity.Views
             InitializeComponent();
         }
 
-        private void Button_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if (sender is Button btn)
-            {
-                string original = btn.Content.ToString()?.TrimStart() ?? "";
-                btn.Content = "> " + original;
-            }
-        }
-
-        private void Button_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (sender is Button btn)
-            {
-                string current = btn.Content.ToString() ?? "";
-                if (current.StartsWith("> "))
-                    btn.Content = "  " + current.Substring(2);
-            }
-        }
-
         private void NewGame_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.Instance?.NavigateTo(new GameView());

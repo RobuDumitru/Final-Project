@@ -19,18 +19,13 @@
                     VerticalAlignment="Center"
                     Margin="0,120,0,0"
                     Width="300">
-            <Button Content="  NEW GAME" Style="{StaticResource ConsoleButton}"
-                    MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave"
+            <Button Content="NEW GAME" Style="{StaticResource ConsoleButton}"
                     Click="NewGame_Click"/>
-            <Button Content="  CONTINUE" Style="{StaticResource ConsoleButton}"
-                    MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave"/>
-            <Button Content="  TUTORIAL" Style="{StaticResource ConsoleButton}"
-                    MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave"
+            <Button Content="CONTINUE" Style="{StaticResource ConsoleButton}"/>
+            <Button Content="TUTORIAL" Style="{StaticResource ConsoleButton}"
                     Click="Tutorial_Click"/>
-            <Button Content="  SETTINGS" Style="{StaticResource ConsoleButton}"
-                    MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave"/>
-            <Button Content="  EXIT" Style="{StaticResource ConsoleButton}"
-                    MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave"
+            <Button Content="SETTINGS" Style="{StaticResource ConsoleButton}"/>
+            <Button Content="EXIT" Style="{StaticResource ConsoleButton}"
                     Click="Exit_Click"/>
         </StackPanel>
     </Grid>

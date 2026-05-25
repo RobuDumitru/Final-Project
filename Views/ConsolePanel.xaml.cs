@@ -81,8 +81,7 @@ namespace LostInAForgottenCity.Views
             TextPanel.Children.Add(new TextBlock { Height = 8 });
         }
 
-        public void ShowOptions(List<string> options,
-            Action<int> onSelected)
+        public void ShowOptions(List<string> options,Action<int> onSelected)
         {
             OptionsPanel.Children.Clear();
             QtePanel.Visibility = Visibility.Collapsed;
@@ -93,11 +92,12 @@ namespace LostInAForgottenCity.Views
                 int index = i;
                 var btn = new Button
                 {
-                    Content = $"  {options[i]}",
+                    Content = options[i],
                     Style = (Style)Application.Current
                         .Resources["GameScreenButton"],
                     Margin = new Thickness(0, 2, 0, 2)
                 };
+
                 btn.Click += (s, e) =>
                 {
                     AddChoiceEcho(options[index]);
