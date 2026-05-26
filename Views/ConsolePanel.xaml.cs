@@ -81,7 +81,7 @@ namespace LostInAForgottenCity.Views
             TextPanel.Children.Add(new TextBlock { Height = 8 });
         }
 
-        public void ShowOptions(List<string> options,Action<int> onSelected)
+        public void ShowOptions(List<string> options, Action<int> onSelected)
         {
             OptionsPanel.Children.Clear();
             QtePanel.Visibility = Visibility.Collapsed;
@@ -211,6 +211,27 @@ namespace LostInAForgottenCity.Views
         {
             TextScroller.UpdateLayout();
             TextScroller.ScrollToBottom();
+        }
+        public bool IsTyping => _typewriterTimer.IsEnabled;
+
+        private TextBlock? _bootTextBlock;
+
+        public void SetBootText(string text)
+        {
+            if (_bootTextBlock == null)
+            {
+                _bootTextBlock = new TextBlock
+                {
+                    FontFamily = new FontFamily("Courier New"),
+                    FontSize = 13,
+                    Foreground = new SolidColorBrush(
+                        Color.FromRgb(0x4a, 0x6a, 0x4a)),
+                    Margin = new Thickness(0, 0, 0, 4)
+                };
+                TextPanel.Children.Add(_bootTextBlock);
+                ScrollToBottom();
+            }
+            _bootTextBlock.Text = text;
         }
     }
 }

@@ -108,7 +108,7 @@ namespace LostInAForgottenCity.Views
 
         // ── Overlay system ───────────────────────
 
-        private void ShowOverlay(string title, UIElement content,bool showClose = true)
+        private void ShowOverlay(string title, UIElement content, bool showClose = true)
         {
             OverlayTitle.Text = title;
             OverlayContent.Content = content;
@@ -312,6 +312,109 @@ namespace LostInAForgottenCity.Views
                             _state.AdvanceTime(15);
                         });
                 });
+        }
+        public void StartTutorial(string firstSceneId)
+        {
+            // Clear test console
+            GameConsole.ClearConsole();
+
+            // Load tutorial data into engine
+            var tutorialLocations = TutorialData.GetSimplifiedLocations();
+            var tutorialItems = TutorialData.GetSimplifiedItems();
+            var tutorialNPCs = TutorialData.GetSimplifiedNPCs();
+
+            foreach (var loc in tutorialLocations)
+                _state.Engine.Locations[loc.Key] = loc.Value;
+            foreach (var item in tutorialItems)
+                _state.Engine.Items[item.Key] = item.Value;
+            foreach (var npc in tutorialNPCs)
+                _state.Engine.NPCs[npc.Key] = npc.Value;
+
+            _state.Engine.CurrentPlayer.CurrentLocationId = "unknown_ruins";
+
+            // Wire dialogue engine to console
+            var dialogue = new DialogueEngine();
+            dialogue.LoadDialogue(DialogueData.GetTutorialDialogue());
+
+            // NEW
+            dialogue.OnLine += (line, next) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (line.IsGameline)
+                        GameConsole.AddText(line.Text,
+                            TextType.Gameline,
+                            onComplete: () => next());
+                    else if (line.IsNarration)
+                        GameConsole.AddText(line.Text,
+                            TextType.Description,
+                            onComplete: () => next());
+                    else
+                        GameConsole.AddText(
+                            $"{line.Speaker}: {line.Text}",
+                            TextType.Dialogue,
+                            onComplete: () => next());
+                });
+            };
+
+            dialogue.OnChoices += choices =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    var options = new List<string>();
+                    foreach (var c in choices)
+                        options.Add(c.Text);
+
+                    GameConsole.ShowOptions(options, index =>
+                        dialogue.SelectChoice(index));
+                });
+            };
+
+            dialogue.OnAutoNext += id =>
+                Dispatcher.Invoke(() => dialogue.StartScene(id));
+
+            dialogue.OnSceneComplete += () =>
+                Dispatcher.Invoke(() =>
+                    GameConsole.AddText(
+                        "The vision fades.",
+                        TextType.Description));
+
+            dialogue.StartScene(firstSceneId);
+
+            string lastSpeaker = "";
+
+            dialogue.OnLine += (line, next) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    string displayText;
+                    TextType type;
+
+                    if (line.IsGameline)
+                    {
+                        displayText = line.Text;
+                        type = TextType.Gameline;
+                    }
+                    else if (line.IsNarration ||
+                             string.IsNullOrEmpty(line.Speaker))
+                    {
+                        displayText = line.Text;
+                        type = TextType.Description;
+                        lastSpeaker = "";
+                    }
+                    else
+                    {
+                        displayText = line.Speaker != lastSpeaker
+                            ? $"{line.Speaker}: {line.Text}"
+                            : line.Text;
+                        lastSpeaker = line.Speaker;
+                        type = TextType.Dialogue;
+                    }
+
+                    GameConsole.AddText(displayText, type,
+                        onComplete: () => next());
+                });
+            };
         }
     }
 }
