@@ -57,6 +57,18 @@
                                                       VerticalAlignment="Center"/>
                         </WrapPanel>
                     </StackPanel>
+                    <!-- Configuring overlay -->
+                    <Grid x:Name="MindOverlay"
+                          Background="#1a1a2a"
+                          Visibility="Collapsed">
+                        <TextBlock x:Name="MindOverlayText"
+                                   Text="[ configuring ]"
+                                   FontFamily="Courier New"
+                                   FontSize="11"
+                                   Foreground="#4a4a5a"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
                 </Grid>
             </Border>
 
@@ -84,6 +96,17 @@
                                                 MaxValue="30"
                                                 Margin="0,6,0,0"/>
                     </StackPanel>
+                    <Grid x:Name="SpiritOverlay"
+                          Background="#1a1a2a"
+                          Visibility="Collapsed">
+                        <TextBlock x:Name="SpiritOverlayText"
+                                   Text="[ configuring ]"
+                                   FontFamily="Courier New"
+                                   FontSize="11"
+                                   Foreground="#4a4a5a"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
                 </Grid>
             </Border>
 
@@ -104,15 +127,26 @@
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
                         <controls:HpBar x:Name="PlayerHpBar"
-                                         Value="10"
-                                         MaxSegments="20"/>
+                                        Value="10"
+                                        MaxSegments="20"/>
                         <controls:StaminaSleepBar x:Name="PlayerStaminaSleepBar"
-                                                   Value="5"
-                                                   MaxSegments="10"
-                                                   SleepValue="50"
-                                                   IsSleepVisible="True"
-                                                   Margin="0,6,0,0"/>
+                                                  Value="5"
+                                                  MaxSegments="10"
+                                                  SleepValue="50"
+                                                  IsSleepVisible="True"
+                                                  Margin="0,6,0,0"/>
                     </StackPanel>
+                    <Grid x:Name="BodyOverlay"
+                          Background="#1a1a2a"
+                          Visibility="Collapsed">
+                        <TextBlock x:Name="BodyOverlayText"
+                                   Text="[ configuring ]"
+                                   FontFamily="Courier New"
+                                   FontSize="11"
+                                   Foreground="#4a4a5a"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>
@@ -122,7 +156,20 @@
                 Grid.Column="0"
                 BorderBrush="#2a3a2a"
                 BorderThickness="0,0,1,0">
-            <controls:MapPanel x:Name="GameMap"/>
+            <Grid>
+                <controls:MapPanel x:Name="GameMap"/>
+                <Grid x:Name="MapOverlay"
+                      Background="#0a0f0a"
+                      Visibility="Collapsed">
+                    <TextBlock x:Name="MapOverlayText"
+                               Text="[ configuring ]"
+                               FontFamily="Courier New"
+                               FontSize="11"
+                               Foreground="#4a4a5a"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Grid>
+            </Grid>
         </Border>
 
         <!-- ═══ CONSOLE ═══ -->
@@ -132,9 +179,9 @@
 
         <!-- ═══ OVERLAY PANEL ═══ -->
         <Grid Grid.Row="0"
-                Grid.Column="0"
+              Grid.Column="0"
               Grid.RowSpan="3"
-                Grid.ColumnSpan="2"
+              Grid.ColumnSpan="2"
               x:Name="GameOverlay"
               Visibility="Collapsed"
               Background="#aa000000"
@@ -280,6 +327,17 @@
                                           Hazard="None"
                                           IsCurseVisible="False"
                                           Margin="4,14,4,4"/>
+                        <Grid x:Name="TimeOverlay"
+                              Background="#1a1a2a"
+                              Visibility="Collapsed">
+                            <TextBlock x:Name="TimeOverlayText"
+                                       Text="[ configuring ]"
+                                       FontFamily="Courier New"
+                                       FontSize="11"
+                                       Foreground="#4a4a5a"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
                     </Grid>
                 </Border>
 
@@ -318,6 +376,17 @@
                                                    SlotCount="6"
                                                    VerticalAlignment="Center"/>
                         </StackPanel>
+                        <Grid x:Name="InventoryOverlay"
+                              Background="#1a1a2a"
+                              Visibility="Collapsed">
+                            <TextBlock x:Name="InventoryOverlayText"
+                                       Text="[ configuring ]"
+                                       FontFamily="Courier New"
+                                       FontSize="11"
+                                       Foreground="#4a4a5a"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
                     </Grid>
                 </Border>
             </Grid>

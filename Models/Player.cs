@@ -59,5 +59,7 @@ namespace LostInAForgottenCity.Models
         public bool IsHardMode { get; set; } = false;
         public string CurseText { get; set; } = "";
         public List<string> VisitedLocations { get; set; } = new();
+
+        public bool HasVisitedTutorial { get; set; } = false;
     }
 }

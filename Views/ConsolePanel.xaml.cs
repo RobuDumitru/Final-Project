@@ -233,5 +233,11 @@ namespace LostInAForgottenCity.Views
             }
             _bootTextBlock.Text = text;
         }
+
+        public void SetTypewriterSpeed(int milliseconds)
+        {
+            _typewriterTimer.Interval =
+                TimeSpan.FromMilliseconds(milliseconds);
+        }
     }
 }

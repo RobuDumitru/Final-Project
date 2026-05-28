@@ -43,7 +43,7 @@ namespace LostInAForgottenCity.Engine
             var line = scene.Lines[index];
 
             // Fire line, pass callback to advance to next
-            OnLine?.Invoke(line, () => 
+            OnLine?.Invoke(line, () =>
                 PlayLines(scene, index + 1));
         }
 
@@ -55,6 +55,13 @@ namespace LostInAForgottenCity.Engine
         public void GoToScene(string sceneId)
         {
             StartScene(sceneId);
+        }
+        public void UnsubscribeAll()
+        {
+            OnLine = null;
+            OnChoices = null;
+            OnAutoNext = null;
+            OnSceneComplete = null;
         }
     }
 }

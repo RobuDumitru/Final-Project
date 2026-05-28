@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using LostInAForgottenCity.Controls;
 using LostInAForgottenCity.Engine;
 using LostInAForgottenCity.Views;
+using System.Linq;
 
 namespace LostInAForgottenCity.Views
 {
@@ -315,10 +317,11 @@ namespace LostInAForgottenCity.Views
         }
         public void StartTutorial(string firstSceneId)
         {
-            // Clear test console
             GameConsole.ClearConsole();
+            StartConfiguringAnimation();
 
-            // Load tutorial data into engine
+            // Load tutorial-specific data
+
             var tutorialLocations = TutorialData.GetSimplifiedLocations();
             var tutorialItems = TutorialData.GetSimplifiedItems();
             var tutorialNPCs = TutorialData.GetSimplifiedNPCs();
@@ -332,54 +335,8 @@ namespace LostInAForgottenCity.Views
 
             _state.Engine.CurrentPlayer.CurrentLocationId = "unknown_ruins";
 
-            // Wire dialogue engine to console
             var dialogue = new DialogueEngine();
             dialogue.LoadDialogue(DialogueData.GetTutorialDialogue());
-
-            // NEW
-            dialogue.OnLine += (line, next) =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    if (line.IsGameline)
-                        GameConsole.AddText(line.Text,
-                            TextType.Gameline,
-                            onComplete: () => next());
-                    else if (line.IsNarration)
-                        GameConsole.AddText(line.Text,
-                            TextType.Description,
-                            onComplete: () => next());
-                    else
-                        GameConsole.AddText(
-                            $"{line.Speaker}: {line.Text}",
-                            TextType.Dialogue,
-                            onComplete: () => next());
-                });
-            };
-
-            dialogue.OnChoices += choices =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    var options = new List<string>();
-                    foreach (var c in choices)
-                        options.Add(c.Text);
-
-                    GameConsole.ShowOptions(options, index =>
-                        dialogue.SelectChoice(index));
-                });
-            };
-
-            dialogue.OnAutoNext += id =>
-                Dispatcher.Invoke(() => dialogue.StartScene(id));
-
-            dialogue.OnSceneComplete += () =>
-                Dispatcher.Invoke(() =>
-                    GameConsole.AddText(
-                        "The vision fades.",
-                        TextType.Description));
-
-            dialogue.StartScene(firstSceneId);
 
             string lastSpeaker = "";
 
@@ -394,6 +351,7 @@ namespace LostInAForgottenCity.Views
                     {
                         displayText = line.Text;
                         type = TextType.Gameline;
+                        lastSpeaker = "";
                     }
                     else if (line.IsNarration ||
                              string.IsNullOrEmpty(line.Speaker))
@@ -415,6 +373,238 @@ namespace LostInAForgottenCity.Views
                         onComplete: () => next());
                 });
             };
+
+            _activeTutorialDialogue = dialogue;
+
+            dialogue.OnChoices += choices =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    var options = new List<string>();
+                    foreach (var c in choices)
+                        options.Add(c.Text);
+
+                    // Capture CURRENT safe scene BEFORE any choice
+                    string safeScene = _lastSafeSceneId;
+
+                    GameConsole.ShowOptions(options, index =>
+                    {
+                        string nextId = choices[index].NextSceneId;
+
+                        switch (nextId)
+                        {
+                            case "intro_death_bridge":
+                                ShowTutorialDeath(
+                                    "He was brave, but bravery without " +
+                                    "caution is just another way to die.",
+                                    safeScene);
+                                break;
+
+                            case "intro_death_exhaustion":
+                                ShowTutorialDeath(
+                                    "He was cautious, but caution without " +
+                                    "decisiveness is just a slower end.",
+                                    safeScene,
+                                    slow: true);
+                                break;
+
+                            case "intro_mountain_edge":
+                                // TODO: reveal map when told
+                                break;
+
+                            default:
+                                // Only update safe scene for non-death choices
+                                _lastSafeSceneId = nextId;
+                                dialogue.GoToScene(nextId);
+                                break;
+                        }
+                    });
+                });
+            };
+
+            dialogue.OnAutoNext += id =>
+            Dispatcher.Invoke(() =>
+            {
+                // Reveal panels based on scene
+                switch (id)
+                {
+                    case "tut_movement":
+                        RevealPanel(UIPanel.Map);
+                        break;
+                    case "tut_time":
+                        RevealPanel(UIPanel.Time);
+                        break;
+                    case "tut_sanity":
+                        RevealPanel(UIPanel.Mind);
+                        break;
+                    case "tut_items":
+                        RevealPanel(UIPanel.Inventory);
+                        break;
+                    case "tut_spirit":
+                        RevealPanel(UIPanel.Spirit);
+                        break;
+                    case "tut_body":
+                        RevealPanel(UIPanel.Body);
+                        break;
+                }
+                dialogue.StartScene(id);
+            });
+
+            dialogue.OnSceneComplete += () =>
+                Dispatcher.Invoke(() =>
+                    GameConsole.AddText(
+                        "The vision fades.",
+                        TextType.Description));
+
+            // Start directly — no proceed button
+            dialogue.StartScene(firstSceneId);
         }
+        private DispatcherTimer _configuringTimer = new();
+        private int _configuringDots = 0;
+        private const int MaxConfiguringDots = 5;
+
+        private List<(Grid overlay, TextBlock text)> _overlays = new();
+
+        public void StartConfiguringAnimation()
+        {
+            // Show all overlays
+            _overlays = new List<(Grid, TextBlock)>
+    {
+        (MindOverlay, MindOverlayText),
+        (SpiritOverlay, SpiritOverlayText),
+        (BodyOverlay, BodyOverlayText),
+        (TimeOverlay, TimeOverlayText),
+        (InventoryOverlay, InventoryOverlayText),
+        (MapOverlay, MapOverlayText)
+    };
+
+            foreach (var (overlay, _) in _overlays)
+                overlay.Visibility = Visibility.Visible;
+
+            _configuringTimer.Interval =
+                TimeSpan.FromMilliseconds(400);
+            _configuringTimer.Tick += ConfiguringTick;
+            _configuringTimer.Start();
+        }
+
+        private void ConfiguringTick(object? sender, EventArgs e)
+        {
+            _configuringDots++;
+            string dots = string.Concat(
+                Enumerable.Repeat(" .", _configuringDots));
+            string text = $"[ configuring{dots} ]";
+
+            foreach (var (_, textBlock) in _overlays)
+                textBlock.Text = text;
+
+            if (_configuringDots >= MaxConfiguringDots)
+            {
+                _configuringTimer.Stop();
+                OnConfiguringComplete();
+            }
+        }
+
+        private void OnConfiguringComplete()
+        {
+
+        }
+
+        public enum UIPanel
+        {
+            Mind, Spirit, Body, Map, Time, Inventory
+        }
+
+        public void RevealPanel(UIPanel panel)
+        {
+            switch (panel)
+            {
+                case UIPanel.Mind:
+                    MindOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Spirit:
+                    SpiritOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Body:
+                    BodyOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Map:
+                    MapOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Time:
+                    TimeOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Inventory:
+                    InventoryOverlay.Visibility = Visibility.Collapsed;
+                    break;
+            }
+        }
+
+        private void ShowTutorialDeath(string comment,
+    string retrySceneId,
+    bool slow = false)
+        {
+            if (slow)
+            {
+                // For exhaustion death, slow the last text
+                // then show overlay after a pause
+                var pauseTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(2000)
+                };
+                pauseTimer.Tick += (s, e) =>
+                {
+                    pauseTimer.Stop();
+                    GameConsole.SetTypewriterSpeed(18);
+                    ShowOverlay("YOU FAILED",
+                        BuildDeathContent(comment, retrySceneId),
+                        showClose: false);
+                };
+                pauseTimer.Start();
+            }
+            else
+            {
+                // Show overlay immediately
+                ShowOverlay("YOU FAILED",
+                    BuildDeathContent(comment, retrySceneId),
+                    showClose: false);
+            }
+        }
+
+        private UIElement BuildDeathContent(string comment,
+            string retrySceneId)
+        {
+            var panel = new StackPanel
+            {
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            panel.Children.Add(MakeOverlayText(
+                $"\"{comment},", "#c8a8d0"));
+            panel.Children.Add(MakeOverlayText(
+                "but unfortunately this is not " +
+                "how it happened.\"", "#c8a8d0"));
+            panel.Children.Add(MakeOverlayText(
+                "— Fortuneteller", "#8a6a8a"));
+
+            var tryAgainBtn = new Button
+            {
+                Content = "TRY AGAIN",
+                Style = (Style)Application.Current
+                    .Resources["ConsoleButton"],
+                Margin = new System.Windows.Thickness(0, 16, 0, 4)
+            };
+            tryAgainBtn.Click += (s, e) =>
+            {
+                GameOverlay.Visibility = Visibility.Collapsed;
+                GameConsole.ClearConsole();
+                GameConsole.SetTypewriterSpeed(18);
+                _activeTutorialDialogue?.GoToScene(retrySceneId);
+            };
+
+            panel.Children.Add(tryAgainBtn);
+            return panel;
+        }
+        private string _lastSafeSceneId = "intro_tutorial_begin";
+        private DialogueEngine? _activeTutorialDialogue;
     }
 }

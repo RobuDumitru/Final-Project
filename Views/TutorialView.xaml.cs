@@ -31,7 +31,7 @@ namespace LostInAForgottenCity.Views
 
         private void StartBootSequence()
         {
-            _bootTimer.Interval = 
+            _bootTimer.Interval =
                 TimeSpan.FromMilliseconds(400);
             _bootTimer.Tick += BootTick;
             _bootTimer.Start();
@@ -110,22 +110,28 @@ namespace LostInAForgottenCity.Views
             };
 
             _dialogue.OnChoices += choices =>
-            {
-                Dispatcher.Invoke(() =>
-                    DisplayChoices(choices));
-            };
+                Dispatcher.Invoke(() => DisplayChoices(choices));
 
             _dialogue.OnAutoNext += id =>
-                Dispatcher.Invoke(() =>
-                    _dialogue.StartScene(id));
+                Dispatcher.Invoke(() => _dialogue.StartScene(id));
 
             _dialogue.OnSceneComplete += () => { };
 
-            _dialogue.StartScene("fortuneteller_arrival");
+            // Check if first visit or return
+            bool returning = GameState.Instance.Player.HasVisitedTutorial;
+
+            if (!returning)
+            {
+                GameState.Instance.Player.HasVisitedTutorial = true;
+                _dialogue.StartScene("fortuneteller_arrival");
+            }
+            else
+            {
+                _dialogue.StartScene("fortuneteller_return");
+            }
         }
 
-        private void DisplayChoices(
-            List<DialogueChoice> choices)
+        private void DisplayChoices(List<DialogueChoice> choices)
         {
             var options = new List<string>();
             foreach (var c in choices)
@@ -133,37 +139,38 @@ namespace LostInAForgottenCity.Views
 
             TutorialConsole.ShowOptions(options, index =>
             {
-                // Tutorial type choices
-                if (choices[index].NextSceneId ==
-                    "tutorial_introduction_start")
-                {
-                    ShowProceedButton(
-                        "tutorial_introduction_start");
-                    return;
-                }
-                if (choices[index].NextSceneId ==
-                    "tutorial_scenarios_start")
-                {
-                    ShowProceedButton(
-                        "tutorial_scenarios_start");
-                    return;
-                }
+                string nextId = choices[index].NextSceneId;
 
-                _dialogue.GoToScene(
-                    choices[index].NextSceneId);
+                switch (nextId)
+                {
+                    case "intro_tutorial_begin":
+                        _dialogue.UnsubscribeAll();
+                        var gameView = new GameView();
+                        gameView.StartTutorial("intro_tutorial_begin");
+                        MainWindow.Instance?.NavigateTo(gameView);
+                        break;
+
+                    case "tutorial_scenarios_check":
+                        bool introCompleted = GameState.Instance.Player
+                            .CompletedQuests.Contains("intro_tutorial");
+                        _dialogue.GoToScene(introCompleted
+                            ? "tutorial_scenarios_unlocked"
+                            : "tutorial_scenarios_locked");
+                        break;
+
+                    case "tutorial_go_back":
+                        MainWindow.Instance?.NavigateTo(new MenuView());
+                        break;
+
+                    case "scenario_selection":
+                        // TODO: open scenario selection screen
+                        break;
+
+                    default:
+                        _dialogue.GoToScene(nextId);
+                        break;
+                }
             });
-        }
-
-        private void ShowProceedButton(string sceneId)
-        {
-            TutorialConsole.ShowOptions(
-                new List<string> { "Proceed" },
-                _ =>
-                {
-                    var gameView = new GameView();
-                    gameView.StartTutorial(sceneId);
-                    MainWindow.Instance?.NavigateTo(gameView);
-                });
         }
     }
 }
