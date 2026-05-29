@@ -11,6 +11,7 @@ namespace LostInAForgottenCity.Engine
         public event Action<List<DialogueChoice>>? OnChoices;
         public event Action? OnSceneComplete;
         public event Action<string>? OnAutoNext;
+        public event Action<string>? OnSceneStart;
 
         public void LoadDialogue(
             Dictionary<string, DialogueScene> scenes)
@@ -28,7 +29,9 @@ namespace LostInAForgottenCity.Engine
 
         private void PlayLines(DialogueScene scene, int index)
         {
-            // All lines done
+            if (index == 0)
+                OnSceneStart?.Invoke(scene.Id);
+
             if (index >= scene.Lines.Count)
             {
                 if (scene.Choices.Count > 0)
@@ -41,12 +44,9 @@ namespace LostInAForgottenCity.Engine
             }
 
             var line = scene.Lines[index];
-
-            // Fire line, pass callback to advance to next
-            OnLine?.Invoke(line, () =>
-                PlayLines(scene, index + 1));
+            OnLine?.Invoke(line, () => PlayLines(scene, index + 1));
         }
-
+        
         public void SelectChoice(int index)
         {
             // Will be called from outside

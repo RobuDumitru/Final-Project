@@ -723,6 +723,10 @@ namespace LostInAForgottenCity.Engine
         new() {
             Text = "But nobody came.",
             IsNarration = true
+        },
+        new() {
+            Text = "The hiker's journey ends here.",
+            IsNarration = true
         }
     },
                     Choices = new List<DialogueChoice>
@@ -819,6 +823,137 @@ namespace LostInAForgottenCity.Engine
                     Id = "intro_mountain_edge",
                     Lines = new List<DialogueLine>(),
                     Choices = new List<DialogueChoice>()
+                },
+                ["intro_mountain_edge_arrival"] = new DialogueScene
+                {
+                    Id = "intro_mountain_edge_arrival",
+                    Lines = new List<DialogueLine>
+    {
+        new() {
+            Text = "He arrived in Mountain Edge.",
+            IsNarration = true
+        },
+        new() {
+            Text = "Through the fog, he can see:",
+            IsNarration = true
+        },
+        new() {
+            Text = "- Parking Lot",
+            IsNarration = true
+        },
+        new() {
+            Text = "- Empty Booth",
+            IsNarration = true
+        },
+        new() {
+            Text = "- Cluster of Signs",
+            IsNarration = true
+        }
+    },
+                    Choices = new List<DialogueChoice>
+    {
+        new() {
+            Text = "Look around.",
+            NextSceneId = "intro_look_around"
+        },
+        new() {
+            Text = "Head to the Parking Lot.",
+            NextSceneId = "intro_move_parking_lot"
+        },
+        new() {
+            Text = "Head to the Empty Booth.",
+            NextSceneId = "intro_move_booth"
+        },
+        new() {
+            Text = "Head to the Cluster of Signs.",
+            NextSceneId = "intro_move_signs"
+        }
+    }
+                },
+
+                ["intro_look_around"] = new DialogueScene
+                {
+                    Id = "intro_look_around",
+                    Lines = new List<DialogueLine>
+    {
+        new() {
+            Text = "The hiker takes a moment to assess " +
+                   "his surroundings more carefully.",
+            IsNarration = true
+        },
+        new() {
+            Text = "He can now see more clearly:",
+            IsNarration = true
+        },
+        new() {
+            // Distances revealed — randomized in real game
+            // Fixed for tutorial
+            Text = "- Parking Lot [IMMEDIATE]",
+            IsNarration = true
+        },
+        new() {
+            Text = "- Empty Booth [CLOSE]",
+            IsNarration = true
+        },
+        new() {
+            Text = "- Cluster of Signs [FAR]",
+            IsNarration = true
+        },
+        new() {
+            Text = "Used 1 stamina. 5 minutes passed.",
+            IsGameline = true
+        }
+    },
+                    AutoNextId = "intro_look_around_reveal"
+                },
+
+                ["intro_look_around_reveal"] = new DialogueScene
+                {
+                    Id = "intro_look_around_reveal",
+                    Lines = new List<DialogueLine>
+    {
+        new() {
+            Speaker = "Fortuneteller",
+            Text = "Everything you do takes time. " +
+                   "The larger the scale, the more time " +
+                   "it will take. But do not forget — " +
+                   "you cannot always afford time."
+        },
+        new() {
+            Speaker = "Fortuneteller",
+            Text = "Everything you do also costs effort. " +
+                   "If you push too far, you may overdo it. " +
+                   "And when that happens, " +
+                   "a price must be paid."
+        },
+        new() {
+            Text = "Specific actions will cost time. " +
+                   "While time is passing, some things can happen.",
+            IsGameline = true
+        },
+        new() {
+            Text = "Specific actions cost stamina. " +
+                   "When the bar is empty you cannot move " +
+                   "or perform actions. In an emergency " +
+                   "you can move at the cost of your HP.",
+            IsGameline = true
+        }
+    },
+                    Choices = new List<DialogueChoice>
+    {
+        new() {
+            Text = "Head to the Parking Lot. [IMMEDIATE — 5 min]",
+            NextSceneId = "intro_move_parking_lot"
+        },
+        new() {
+            Text = "Head to the Empty Booth. [CLOSE — 10 min]",
+            NextSceneId = "intro_move_booth"
+        },
+        new() {
+            Text = "Head to the Cluster of Signs. [FAR — 20 min]",
+            NextSceneId = "intro_move_signs"
+        }
+    }
                 },
             };
         }

@@ -121,11 +121,20 @@ namespace LostInAForgottenCity.Controls
             // ── Period ──
             PeriodText.Text = GetPeriod(Hour);
 
-            // ── Day counter ──
-            DayText.Text = Day.ToString();
-            DayText.Foreground = Day >= 24
-                ? new SolidColorBrush(Color.FromRgb(0xcc, 0x40, 0x40))
-                : new SolidColorBrush(Color.FromRgb(0xc8, 0xc8, 0xb0));
+            // Day counter
+            if (IsDayCounterVisible)
+            {
+                DayText.Text = Day.ToString();
+                DayText.Foreground = Day >= 24
+                    ? new SolidColorBrush(Color.FromRgb(0xcc, 0x40, 0x40))
+                    : new SolidColorBrush(Color.FromRgb(0xc8, 0xc8, 0xb0));
+            }
+            else
+            {
+                DayText.Text = "[disabled]";
+                DayText.Foreground = new SolidColorBrush(
+                    Color.FromRgb(0x4a, 0x4a, 0x5a));
+            }
 
             // ── Curse/Warning ──
             CurseText.Visibility = IsCurseVisible
@@ -215,6 +224,25 @@ namespace LostInAForgottenCity.Controls
                 "Soul Trap" => Color.FromRgb(0x9a, 0x40, 0xcc), // Purple
                 _ => Color.FromRgb(0x7a, 0xaa, 0x60)
             };
+        }
+        public static readonly DependencyProperty IsDayCounterVisibleProperty =
+            DependencyProperty.Register(
+                "IsDayCounterVisible", typeof(bool), typeof(TimeBox),
+                new PropertyMetadata(true, OnPropertyChanged));
+
+        public bool IsDayCounterVisible
+        {
+            get => (bool)GetValue(IsDayCounterVisibleProperty);
+            set => SetValue(IsDayCounterVisibleProperty, value);
+        }
+        public void RevealClock()
+        {
+            ClockOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        public void RevealWeather()
+        {
+            WeatherOverlay.Visibility = Visibility.Collapsed;
         }
     }
 }
