@@ -12,6 +12,7 @@ namespace LostInAForgottenCity.Engine
         public event Action? OnSceneComplete;
         public event Action<string>? OnAutoNext;
         public event Action<string>? OnSceneStart;
+        public event Action<StatEffect>? OnEffectApplied;
 
         public void LoadDialogue(
             Dictionary<string, DialogueScene> scenes)
@@ -23,14 +24,17 @@ namespace LostInAForgottenCity.Engine
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
                 return;
-
             PlayLines(scene, 0);
         }
 
         private void PlayLines(DialogueScene scene, int index)
         {
             if (index == 0)
+            {
                 OnSceneStart?.Invoke(scene.Id);
+                if (scene.OnEnterEffect != null)
+                    OnEffectApplied?.Invoke(scene.OnEnterEffect);
+            }
 
             if (index >= scene.Lines.Count)
             {
@@ -46,22 +50,25 @@ namespace LostInAForgottenCity.Engine
             var line = scene.Lines[index];
             OnLine?.Invoke(line, () => PlayLines(scene, index + 1));
         }
-        
-        public void SelectChoice(int index)
-        {
-            // Will be called from outside
-        }
 
-        public void GoToScene(string sceneId)
+        public void GoToScene(string sceneId,
+            StatEffect? effect = null)
         {
+            if (effect != null)
+                OnEffectApplied?.Invoke(effect);
             StartScene(sceneId);
         }
+
+        public void SelectChoice(int index) { }
+
         public void UnsubscribeAll()
         {
             OnLine = null;
             OnChoices = null;
             OnAutoNext = null;
             OnSceneComplete = null;
+            OnSceneStart = null;
+            OnEffectApplied = null;
         }
     }
 }

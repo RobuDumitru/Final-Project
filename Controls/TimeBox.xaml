@@ -11,33 +11,23 @@
         </Grid.ColumnDefinitions>
 
         <!-- LEFT: Date + Time + Period -->
-        <Grid Grid.Column="0">
-            <StackPanel VerticalAlignment="Center"
-                        HorizontalAlignment="Center">
-                <TextBlock x:Name="DateText" Text="12/06/2012"
-                           FontFamily="Courier New" FontSize="11"
-                           Foreground="#8a8a7a"
-                           HorizontalAlignment="Center"
-                           Margin="0,0,0,4"/>
-                <TextBlock x:Name="TimeText" Text="15:00"
-                           FontFamily="Courier New" FontSize="24"
-                           Foreground="#c8c8b0"
-                           HorizontalAlignment="Center"/>
-                <TextBlock x:Name="PeriodText" Text="Afternoon"
-                           FontFamily="Courier New" FontSize="11"
-                           Foreground="#8a8a7a"
-                           HorizontalAlignment="Center"
-                           Margin="0,4,0,0"/>
-            </StackPanel>
-            <!-- Clock overlay -->
-            <Grid x:Name="ClockOverlay" Background="#1a1a2a">
-                <TextBlock Text="[ configuring ]"
-                           FontFamily="Courier New" FontSize="10"
-                           Foreground="#4a4a5a"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
-            </Grid>
-        </Grid>
+        <StackPanel Grid.Column="0" VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+            <TextBlock x:Name="DateText" Text="12/06/2012"
+                       FontFamily="Courier New" FontSize="11"
+                       Foreground="#8a8a7a"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,4"/>
+            <TextBlock x:Name="TimeText" Text="15:00"
+                       FontFamily="Courier New" FontSize="24"
+                       Foreground="#c8c8b0"
+                       HorizontalAlignment="Center"/>
+            <TextBlock x:Name="PeriodText" Text="Afternoon"
+                       FontFamily="Courier New" FontSize="11"
+                       Foreground="#8a8a7a"
+                       HorizontalAlignment="Center"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
 
         <!-- Separator -->
         <Rectangle Grid.Column="1" Width="1"
@@ -95,8 +85,9 @@
                                Foreground="#7aaa60"/>
                 </StackPanel>
             </StackPanel>
-            <!-- Weather overlay -->
-            <Grid x:Name="WeatherOverlay" Background="#1a1a2a">
+            <!-- Weather overlay — visible until weather mechanic introduced -->
+            <Grid x:Name="WeatherOverlay" Background="#1a1a2a"
+                  Visibility="Visible">
                 <TextBlock Text="[ configuring ]"
                            FontFamily="Courier New" FontSize="10"
                            Foreground="#4a4a5a"

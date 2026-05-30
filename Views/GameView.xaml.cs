@@ -19,7 +19,6 @@ namespace LostInAForgottenCity.Views
         private const int MaxConfiguringDots = 5;
         private List<(Grid overlay, TextBlock text)> _overlays = new();
 
-        // Checkpoint mapping — death scene → retry scene
         private static readonly Dictionary<string, string>
             _deathCheckpoints = new()
         {
@@ -87,16 +86,12 @@ namespace LostInAForgottenCity.Views
         // ── Menu buttons ─────────────────────────
         private void ObjectivesBtn_Click(object sender, RoutedEventArgs e)
             => ShowOverlay("OBJECTIVES", BuildObjectivesContent());
-
         private void CollectionsBtn_Click(object sender, RoutedEventArgs e)
             => ShowOverlay("COLLECTIONS", BuildCollectionsContent());
-
         private void HistoryBtn_Click(object sender, RoutedEventArgs e)
             => ShowOverlay("HISTORY", BuildHistoryContent());
-
         private void PauseBtn_Click(object sender, RoutedEventArgs e)
             => ShowOverlay("PAUSED", BuildPauseContent(), showClose: false);
-
         private void ClockBtn_Click(object sender, RoutedEventArgs e) { }
         private void WeatherBtn_Click(object sender, RoutedEventArgs e) { }
 
@@ -118,7 +113,6 @@ namespace LostInAForgottenCity.Views
         {
             var panel = new StackPanel();
             var p = _state.Player;
-
             if (p.ActiveQuests.Count == 0)
                 panel.Children.Add(MakeOverlayText(
                     "No active objectives.", "#6a6a5a"));
@@ -128,7 +122,6 @@ namespace LostInAForgottenCity.Views
                 foreach (var q in p.ActiveQuests)
                     panel.Children.Add(MakeOverlayText($"  ★ {q}", "#c8c8b0"));
             }
-
             if (p.CompletedQuests.Count > 0)
             {
                 panel.Children.Add(MakeOverlayText("\nCOMPLETED", "#6a8a6a"));
@@ -142,14 +135,12 @@ namespace LostInAForgottenCity.Views
         {
             var panel = new StackPanel();
             var p = _state.Player;
-
             if (p.Collections.Count == 0)
                 panel.Children.Add(MakeOverlayText(
                     "No collections found yet.", "#6a6a5a"));
             else
                 foreach (var c in p.Collections)
                     panel.Children.Add(MakeOverlayText($"  ◆ {c}", "#c8a840"));
-
             return panel;
         }
 
@@ -157,7 +148,6 @@ namespace LostInAForgottenCity.Views
         {
             var panel = new StackPanel();
             var p = _state.Player;
-
             if (p.NarrativeHistory.Count == 0)
                 panel.Children.Add(MakeOverlayText("No history yet.", "#6a6a5a"));
             else
@@ -176,7 +166,6 @@ namespace LostInAForgottenCity.Views
             {
                 HorizontalAlignment = HorizontalAlignment.Center
             };
-
             var resumeBtn = new Button
             {
                 Content = "RESUME",
@@ -184,7 +173,6 @@ namespace LostInAForgottenCity.Views
                 Margin = new Thickness(0, 4, 0, 4)
             };
             resumeBtn.Click += CloseOverlay_Click;
-
             var menuBtn = new Button
             {
                 Content = "MAIN MENU",
@@ -196,7 +184,6 @@ namespace LostInAForgottenCity.Views
                 GameOverlay.Visibility = Visibility.Collapsed;
                 MainWindow.Instance?.NavigateTo(new MenuView());
             };
-
             panel.Children.Add(resumeBtn);
             panel.Children.Add(menuBtn);
             return panel;
@@ -207,7 +194,8 @@ namespace LostInAForgottenCity.Views
             return new TextBlock
             {
                 Text = text,
-                FontFamily = new System.Windows.Media.FontFamily("Courier New"),
+                FontFamily = new System.Windows.Media
+                    .FontFamily("Courier New"),
                 FontSize = 13,
                 Foreground = new System.Windows.Media.SolidColorBrush(
                     (System.Windows.Media.Color)System.Windows.Media
@@ -222,12 +210,12 @@ namespace LostInAForgottenCity.Views
         {
             _overlays = new List<(Grid, TextBlock)>
             {
-                (MindOverlay, MindOverlayText),
-                (SpiritOverlay, SpiritOverlayText),
-                (BodyOverlay, BodyOverlayText),
-                (TimeOverlay, TimeOverlayText),
+                (MindOverlay,      MindOverlayText),
+                (SpiritOverlay,    SpiritOverlayText),
+                (BodyOverlay,      BodyOverlayText),
+                (TimeOverlay,      TimeOverlayText),
                 (InventoryOverlay, InventoryOverlayText),
-                (MapOverlay, MapOverlayText)
+                (MapOverlay,       MapOverlayText)
             };
 
             foreach (var (overlay, _) in _overlays)
@@ -242,52 +230,109 @@ namespace LostInAForgottenCity.Views
         private void ConfiguringTick(object? sender, EventArgs e)
         {
             _configuringDots++;
-            string dots = string.Concat(Enumerable.Repeat(" .", _configuringDots));
+            string dots = string.Concat(
+                Enumerable.Repeat(" .", _configuringDots));
             string text = $"[ configuring{dots} ]";
-
             foreach (var (_, textBlock) in _overlays)
                 textBlock.Text = text;
-
             if (_configuringDots >= MaxConfiguringDots)
-            {
                 _configuringTimer.Stop();
-            }
         }
 
         // ── Panel reveal ─────────────────────────
         public enum UIPanel
         {
-            Mind, Spirit, Body, Map, Time, Inventory,
-            Clock, Weather, Stamina
+            // Box-level (initial configuring state)
+            Mind, Spirit, Body, Map, Inventory,
+            // Time — progressive
+            Clock,    // removes TimeOverlay, WeatherOverlay stays
+            Weather,  // removes WeatherOverlay inside TimeBox
+            // Sub-elements within MIND
+            Sanity, Subconscious, Danger,
+            // Sub-elements within SPIRIT
+            Soul, Resistance,
+            // Sub-elements within BODY
+            Hp, Stamina
         }
 
         public void RevealPanel(UIPanel panel)
         {
             switch (panel)
             {
+                // ── Box level ──
                 case UIPanel.Mind:
-                    MindOverlay.Visibility = Visibility.Collapsed; break;
+                    MindOverlay.Visibility = Visibility.Collapsed;
+                    break;
                 case UIPanel.Spirit:
-                    SpiritOverlay.Visibility = Visibility.Collapsed; break;
+                    SpiritOverlay.Visibility = Visibility.Collapsed;
+                    break;
                 case UIPanel.Body:
-                    BodyOverlay.Visibility = Visibility.Collapsed; break;
+                    // Reveal everything in body
+                    BodyOverlay.Visibility = Visibility.Collapsed;
+                    HpBarOverlay.Visibility = Visibility.Collapsed;
+                    StaminaBarOverlay.Visibility = Visibility.Collapsed;
+                    break;
                 case UIPanel.Map:
-                    MapOverlay.Visibility = Visibility.Collapsed; break;
-                case UIPanel.Time:
-                    TimeOverlay.Visibility = Visibility.Collapsed; break;
+                    MapOverlay.Visibility = Visibility.Collapsed;
+                    break;
                 case UIPanel.Inventory:
-                    InventoryOverlay.Visibility = Visibility.Collapsed; break;
+                    InventoryOverlay.Visibility = Visibility.Collapsed;
+                    break;
+
+                // ── Time progressive ──
                 case UIPanel.Clock:
-                    TimeDisplay.RevealClock(); break;
+                    // Remove full time overlay
+                    // WeatherOverlay inside TimeBox stays visible
+                    TimeOverlay.Visibility = Visibility.Collapsed;
+                    break;
                 case UIPanel.Weather:
-                    TimeDisplay.RevealWeather(); break;
+                    TimeDisplay.RevealWeather();
+                    break;
+
+                // ── MIND sub-elements ──
+                case UIPanel.Sanity:
+                    SanityOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Subconscious:
+                    SubconsciousOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Danger:
+                    DangerOverlay.Visibility = Visibility.Collapsed;
+                    break;
+
+                // ── SPIRIT sub-elements ──
+                case UIPanel.Soul:
+                    SoulBarOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Resistance:
+                    ResistanceBarOverlay.Visibility = Visibility.Collapsed;
+                    break;
+
+                // ── BODY sub-elements ──
                 case UIPanel.Stamina:
-                    // Reveal only stamina part of BODY
-                    // Body overlay stays but stamina shows
-                    PlayerStaminaSleepBar.Visibility = Visibility.Visible;
+                    // Stamina revealed first:
+                    // Remove full body overlay
+                    BodyOverlay.Visibility = Visibility.Collapsed;
+                    // HP still hidden
+                    HpBarOverlay.Visibility = Visibility.Visible;
+                    // Stamina visible
+                    StaminaBarOverlay.Visibility = Visibility.Collapsed;
+                    break;
+                case UIPanel.Hp:
+                    HpBarOverlay.Visibility = Visibility.Collapsed;
                     break;
             }
         }
+
+        // ── Map disable (for main game) ───────────
+        public void SetMapDisabled(bool disabled)
+        {
+            MapOverlay.Visibility = disabled
+                ? Visibility.Visible : Visibility.Collapsed;
+            MapOverlayText.Text = disabled
+                ? "[ disabled ]" : "[ configuring ]";
+        }
+
         // ── Tutorial death ────────────────────────
         private void ShowTutorialDeath(string comment,
             string retrySceneId, bool slow = false)
@@ -323,7 +368,6 @@ namespace LostInAForgottenCity.Views
             {
                 HorizontalAlignment = HorizontalAlignment.Center
             };
-
             panel.Children.Add(MakeOverlayText(
                 $"\"{comment},", "#c8a8d0"));
             panel.Children.Add(MakeOverlayText(
@@ -331,7 +375,6 @@ namespace LostInAForgottenCity.Views
                 "#c8a8d0"));
             panel.Children.Add(MakeOverlayText(
                 "— Fortuneteller", "#8a6a8a"));
-
             var tryAgainBtn = new Button
             {
                 Content = "TRY AGAIN",
@@ -345,7 +388,6 @@ namespace LostInAForgottenCity.Views
                 GameConsole.SetTypewriterSpeed(18);
                 _activeTutorialDialogue?.GoToScene(retrySceneId);
             };
-
             panel.Children.Add(tryAgainBtn);
             return panel;
         }
@@ -364,6 +406,9 @@ namespace LostInAForgottenCity.Views
                 _state.Engine.NPCs[npc.Key] = npc.Value;
 
             _state.Engine.CurrentPlayer.CurrentLocationId = "unknown_ruins";
+
+            // Tutorial uses disabled day counter
+            TimeDisplay.IsDayCounterVisible = false;
 
             var dialogue = new DialogueEngine();
             dialogue.LoadDialogue(DialogueData.GetTutorialDialogue());
@@ -405,6 +450,27 @@ namespace LostInAForgottenCity.Views
                 });
             };
 
+            dialogue.OnEffectApplied += effect =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (effect.Stamina != 0)
+                        _state.ModifyStamina(effect.Stamina);
+                    if (effect.Sleep != 0)
+                        _state.ModifySleep(effect.Sleep);
+                    if (effect.Sanity != 0)
+                        _state.ModifySanity(effect.Sanity);
+                    if (effect.HP != 0)
+                        _state.ModifyHP(effect.HP);
+                    if (effect.Soul != 0)
+                        _state.ModifySoul(effect.Soul);
+                    if (effect.Resistance != 0)
+                        _state.ModifyResistance(effect.Resistance);
+                    if (effect.TimeMinutes != 0)
+                        _state.AdvanceTime(effect.TimeMinutes);
+                });
+            };
+
             dialogue.OnChoices += choices =>
             {
                 Dispatcher.Invoke(() =>
@@ -416,8 +482,8 @@ namespace LostInAForgottenCity.Views
                     GameConsole.ShowOptions(options, index =>
                     {
                         string nextId = choices[index].NextSceneId;
+                        var effect = choices[index].Effect;
 
-                        // Check if it's a death scene
                         if (_deathCheckpoints.TryGetValue(
                             nextId, out string? checkpoint))
                         {
@@ -428,54 +494,35 @@ namespace LostInAForgottenCity.Views
                                       "caution is just another way to die."
                                     : "He was cautious, but caution without " +
                                       "decisiveness is just a slower end.",
-                                checkpoint,
-                                slow);
+                                checkpoint, slow);
                             return;
                         }
 
                         switch (nextId)
                         {
                             case "intro_mountain_edge":
-                                RevealPanel(UIPanel.Map);
-                                dialogue.GoToScene("intro_mountain_edge_arrival");
+                                dialogue.GoToScene(
+                                    "intro_mountain_edge_arrival", effect);
                                 break;
                             default:
-                                dialogue.GoToScene(nextId);
+                                dialogue.GoToScene(nextId, effect);
                                 break;
                         }
                     });
                 });
             };
 
-            dialogue.OnAutoNext += id =>
-                Dispatcher.Invoke(() =>
-                {
-                    switch (id)
-                    {
-                        case "tut_movement": RevealPanel(UIPanel.Map); break;
-                        case "tut_time": RevealPanel(UIPanel.Time); break;
-                        case "tut_sanity": RevealPanel(UIPanel.Mind); break;
-                        case "tut_items": RevealPanel(UIPanel.Inventory); break;
-                        case "tut_spirit": RevealPanel(UIPanel.Spirit); break;
-                        case "tut_body": RevealPanel(UIPanel.Body); break;
-                        case "intro_look_around_reveal":
-                            RevealPanel(UIPanel.Clock);
-                            RevealPanel(UIPanel.Stamina);
-                            dialogue.StartScene(id);
-                            break;
-                    }
-                    dialogue.StartScene(id);
-                });
-                
             dialogue.OnSceneStart += sceneId =>
             {
                 Dispatcher.Invoke(() =>
                 {
                     switch (sceneId)
                     {
+                        // Map reveals on first navigation choice
                         case "intro_mountain_edge_arrival":
                             RevealPanel(UIPanel.Map);
                             break;
+                        // Clock + Stamina reveal after look around
                         case "intro_look_around_reveal":
                             RevealPanel(UIPanel.Clock);
                             RevealPanel(UIPanel.Stamina);
@@ -483,6 +530,9 @@ namespace LostInAForgottenCity.Views
                     }
                 });
             };
+
+            dialogue.OnAutoNext += id =>
+                Dispatcher.Invoke(() => dialogue.StartScene(id));
 
             dialogue.OnSceneComplete += () =>
                 Dispatcher.Invoke(() =>
@@ -506,7 +556,6 @@ namespace LostInAForgottenCity.Views
                     GameConsole.AddText(
                         "Stay close to the walls and don't make noise.",
                         TextType.Gameline);
-
                     GameConsole.AddSeparator();
                     GameConsole.ShowOptions(
                         new List<string>

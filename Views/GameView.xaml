@@ -9,16 +9,13 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="120"/>
         </Grid.RowDefinitions>
-
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="350"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- ═══ TOP BAR ═══ -->
-        <Grid Grid.Row="0"
-              Grid.Column="0"
-              Grid.ColumnSpan="2"
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
               Background="#1a1a2a">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
@@ -27,44 +24,70 @@
             </Grid.ColumnDefinitions>
 
             <!-- MIND BOX -->
-            <Border Grid.Column="0"
-                    BorderBrush="#9a7a9a"
-                    BorderThickness="1"
-                    Margin="8,4,4,4">
+            <Border Grid.Column="0" BorderBrush="#9a7a9a"
+                    BorderThickness="1" Margin="8,4,4,4">
                 <Grid>
-                    <TextBlock Text="MIND"
-                               FontFamily="Courier New"
-                               FontSize="10"
-                               FontWeight="SemiBold"
+                    <TextBlock Text="MIND" FontFamily="Courier New"
+                               FontSize="10" FontWeight="SemiBold"
                                Foreground="#9a7a9a"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Top"
                                Margin="0,2,0,0"/>
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
-                        <controls:SanityBar x:Name="PlayerSanityBar"
-                                            Value="50"
-                                            HorizontalAlignment="Center"
-                                            Margin="0,0,0,4"/>
+                        <!-- Sanity -->
+                        <Grid Margin="0,0,0,4">
+                            <controls:SanityBar x:Name="PlayerSanityBar"
+                                                Value="50"
+                                                HorizontalAlignment="Center"/>
+                            <Grid x:Name="SanityOverlay"
+                                  Background="#1a1a2a"
+                                  Visibility="Collapsed">
+                                <TextBlock Text="[ configuring ]"
+                                           FontFamily="Courier New" FontSize="10"
+                                           Foreground="#4a4a5a"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                        <!-- Subconscious + Danger -->
                         <WrapPanel>
-                            <controls:SubconsciousBar x:Name="PlayerSubconsciousBar"
-                                                      Value="5"
-                                                      MaxSlots="10"/>
-                            <controls:DangerIndicator x:Name="PlayerDangerIndicator"
-                                                      Level="Insignificant"
-                                                      StatusEffect="None"
-                                                      Margin="8,0,0,0"
-                                                      VerticalAlignment="Center"/>
+                            <Grid>
+                                <controls:SubconsciousBar x:Name="PlayerSubconsciousBar"
+                                                          Value="5" MaxSlots="10"/>
+                                <Grid x:Name="SubconsciousOverlay"
+                                      Background="#1a1a2a"
+                                      Visibility="Collapsed">
+                                    <TextBlock Text="[ configuring ]"
+                                               FontFamily="Courier New" FontSize="10"
+                                               Foreground="#4a4a5a"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Grid>
+                            <Grid Margin="8,0,0,0">
+                                <controls:DangerIndicator x:Name="PlayerDangerIndicator"
+                                                          Level="Insignificant"
+                                                          StatusEffect="None"
+                                                          VerticalAlignment="Center"/>
+                                <Grid x:Name="DangerOverlay"
+                                      Background="#1a1a2a"
+                                      Visibility="Collapsed">
+                                    <TextBlock Text="[ configuring ]"
+                                               FontFamily="Courier New" FontSize="10"
+                                               Foreground="#4a4a5a"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Grid>
                         </WrapPanel>
                     </StackPanel>
-                    <!-- Configuring overlay -->
-                    <Grid x:Name="MindOverlay"
-                          Background="#1a1a2a"
+                    <!-- Full MIND overlay -->
+                    <Grid x:Name="MindOverlay" Background="#1a1a2a"
                           Visibility="Collapsed">
                         <TextBlock x:Name="MindOverlayText"
                                    Text="[ configuring ]"
-                                   FontFamily="Courier New"
-                                   FontSize="11"
+                                   FontFamily="Courier New" FontSize="11"
                                    Foreground="#4a4a5a"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
@@ -73,36 +96,54 @@
             </Border>
 
             <!-- SPIRIT BOX -->
-            <Border Grid.Column="1"
-                    BorderBrush="#c8a8d0"
-                    BorderThickness="1"
-                    Margin="4,4,4,4">
+            <Border Grid.Column="1" BorderBrush="#c8a8d0"
+                    BorderThickness="1" Margin="4,4,4,4">
                 <Grid>
-                    <TextBlock Text="SPIRIT"
-                               FontFamily="Courier New"
-                               FontSize="10"
-                               FontWeight="SemiBold"
+                    <TextBlock Text="SPIRIT" FontFamily="Courier New"
+                               FontSize="10" FontWeight="SemiBold"
                                Foreground="#c8a8d0"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Top"
                                Margin="0,2,0,0"/>
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
-                        <controls:SoulBar x:Name="PlayerSoulBar"
-                                          Value="25"
-                                          MaxValue="100"/>
-                        <controls:ResistanceBar x:Name="PlayerResistanceBar"
-                                                Value="10"
-                                                MaxValue="30"
-                                                Margin="0,6,0,0"/>
+                        <!-- Soul -->
+                        <Grid>
+                            <controls:SoulBar x:Name="PlayerSoulBar"
+                                              Value="25" MaxValue="100"
+                                              HorizontalAlignment="Center"/>
+                            <Grid x:Name="SoulBarOverlay"
+                                  Background="#1a1a2a"
+                                  Visibility="Collapsed">
+                                <TextBlock Text="[ configuring ]"
+                                           FontFamily="Courier New" FontSize="10"
+                                           Foreground="#4a4a5a"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                        <!-- Resistance -->
+                        <Grid Margin="0,6,0,0">
+                            <controls:ResistanceBar x:Name="PlayerResistanceBar"
+                                                    Value="10" MaxValue="30"
+                                                    HorizontalAlignment="Center"/>
+                            <Grid x:Name="ResistanceBarOverlay"
+                                  Background="#1a1a2a"
+                                  Visibility="Collapsed">
+                                <TextBlock Text="[ configuring ]"
+                                           FontFamily="Courier New" FontSize="10"
+                                           Foreground="#4a4a5a"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
                     </StackPanel>
-                    <Grid x:Name="SpiritOverlay"
-                          Background="#1a1a2a"
+                    <!-- Full SPIRIT overlay -->
+                    <Grid x:Name="SpiritOverlay" Background="#1a1a2a"
                           Visibility="Collapsed">
                         <TextBlock x:Name="SpiritOverlayText"
                                    Text="[ configuring ]"
-                                   FontFamily="Courier New"
-                                   FontSize="11"
+                                   FontFamily="Courier New" FontSize="11"
                                    Foreground="#4a4a5a"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
@@ -111,38 +152,54 @@
             </Border>
 
             <!-- BODY BOX -->
-            <Border Grid.Column="2"
-                    BorderBrush="#aa6060"
-                    BorderThickness="1"
-                    Margin="4,4,8,4">
+            <Border Grid.Column="2" BorderBrush="#aa6060"
+                    BorderThickness="1" Margin="4,4,8,4">
                 <Grid>
-                    <TextBlock Text="BODY"
-                               FontFamily="Courier New"
-                               FontSize="10"
-                               FontWeight="SemiBold"
+                    <TextBlock Text="BODY" FontFamily="Courier New"
+                               FontSize="10" FontWeight="SemiBold"
                                Foreground="#aa6060"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Top"
                                Margin="0,2,0,0"/>
                     <StackPanel VerticalAlignment="Center"
                                 HorizontalAlignment="Center">
-                        <controls:HpBar x:Name="PlayerHpBar"
-                                        Value="10"
-                                        MaxSegments="20"/>
-                        <controls:StaminaSleepBar x:Name="PlayerStaminaSleepBar"
-                                                  Value="5"
-                                                  MaxSegments="10"
-                                                  SleepValue="50"
-                                                  IsSleepVisible="True"
-                                                  Margin="0,6,0,0"/>
+                        <!-- HP -->
+                        <Grid>
+                            <controls:HpBar x:Name="PlayerHpBar"
+                                            Value="10" MaxSegments="20"/>
+                            <Grid x:Name="HpBarOverlay"
+                                  Background="#1a1a2a"
+                                  Visibility="Collapsed">
+                                <TextBlock Text="[ configuring ]"
+                                           FontFamily="Courier New" FontSize="10"
+                                           Foreground="#4a4a5a"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                        <!-- Stamina/Sleep -->
+                        <Grid Margin="0,6,0,0">
+                            <controls:StaminaSleepBar x:Name="PlayerStaminaSleepBar"
+                                                      Value="5" MaxSegments="10"
+                                                      SleepValue="50"
+                                                      IsSleepVisible="True"/>
+                            <Grid x:Name="StaminaBarOverlay"
+                                  Background="#1a1a2a"
+                                  Visibility="Collapsed">
+                                <TextBlock Text="[ configuring ]"
+                                           FontFamily="Courier New" FontSize="10"
+                                           Foreground="#4a4a5a"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
                     </StackPanel>
-                    <Grid x:Name="BodyOverlay"
-                          Background="#1a1a2a"
+                    <!-- Full BODY overlay -->
+                    <Grid x:Name="BodyOverlay" Background="#1a1a2a"
                           Visibility="Collapsed">
                         <TextBlock x:Name="BodyOverlayText"
                                    Text="[ configuring ]"
-                                   FontFamily="Courier New"
-                                   FontSize="11"
+                                   FontFamily="Courier New" FontSize="11"
                                    Foreground="#4a4a5a"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
@@ -152,19 +209,16 @@
         </Grid>
 
         <!-- ═══ MAP ═══ -->
-        <Border Grid.Row="1"
-                Grid.Column="0"
+        <Border Grid.Row="1" Grid.Column="0"
                 BorderBrush="#2a3a2a"
                 BorderThickness="0,0,1,0">
             <Grid>
                 <controls:MapPanel x:Name="GameMap"/>
-                <Grid x:Name="MapOverlay"
-                      Background="#0a0f0a"
+                <Grid x:Name="MapOverlay" Background="#0a0f0a"
                       Visibility="Collapsed">
                     <TextBlock x:Name="MapOverlayText"
                                Text="[ configuring ]"
-                               FontFamily="Courier New"
-                               FontSize="11"
+                               FontFamily="Courier New" FontSize="11"
                                Foreground="#4a4a5a"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"/>
@@ -174,14 +228,11 @@
 
         <!-- ═══ CONSOLE ═══ -->
         <views:ConsolePanel x:Name="GameConsole"
-                            Grid.Row="1"
-                            Grid.Column="1"/>
+                            Grid.Row="1" Grid.Column="1"/>
 
-        <!-- ═══ OVERLAY PANEL ═══ -->
-        <Grid Grid.Row="0"
-              Grid.Column="0"
-              Grid.RowSpan="3"
-              Grid.ColumnSpan="2"
+        <!-- ═══ GAME OVERLAY ═══ -->
+        <Grid Grid.Row="0" Grid.Column="0"
+              Grid.RowSpan="3" Grid.ColumnSpan="2"
               x:Name="GameOverlay"
               Visibility="Collapsed"
               Background="#aa000000"
@@ -189,8 +240,7 @@
             <Border Background="#1a1a2a"
                     BorderBrush="#3a3a4a"
                     BorderThickness="1"
-                    MaxWidth="600"
-                    MaxHeight="500"
+                    MaxWidth="600" MaxHeight="500"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Padding="20">
@@ -200,27 +250,17 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-
-                    <!-- Title -->
-                    <TextBlock Grid.Row="0"
-                               x:Name="OverlayTitle"
+                    <TextBlock Grid.Row="0" x:Name="OverlayTitle"
                                Text="OVERLAY"
-                               FontFamily="Courier New"
-                               FontSize="16"
+                               FontFamily="Courier New" FontSize="16"
                                Foreground="#c8c8b0"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,12"/>
-
-                    <!-- Content -->
-                    <ScrollViewer Grid.Row="1"
-                                  MaxHeight="350"
+                    <ScrollViewer Grid.Row="1" MaxHeight="350"
                                   VerticalScrollBarVisibility="Auto">
                         <ContentControl x:Name="OverlayContent"/>
                     </ScrollViewer>
-
-                    <!-- Close button -->
-                    <Button Grid.Row="2"
-                            x:Name="OverlayCloseBtn"
+                    <Button Grid.Row="2" x:Name="OverlayCloseBtn"
                             Content="CLOSE"
                             Style="{StaticResource GameScreenButton}"
                             HorizontalAlignment="Center"
@@ -231,18 +271,13 @@
         </Grid>
 
         <!-- ═══ BOTTOM BAR ═══ -->
-        <Grid Grid.Row="2"
-              Grid.Column="0"
-              Grid.ColumnSpan="2"
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
               Background="#1a1a2a">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-
-            <Rectangle Grid.Row="0"
-                       Fill="#3a3a4a"/>
-
+            <Rectangle Grid.Row="0" Fill="#3a3a4a"/>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -250,16 +285,12 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- LEFT: Navigation buttons in box -->
-                <Border Grid.Column="0"
-                        BorderBrush="#7aaa60"
-                        BorderThickness="1"
-                        Margin="8,4,4,4">
+                <!-- MENU BOX -->
+                <Border Grid.Column="0" BorderBrush="#7aaa60"
+                        BorderThickness="1" Margin="8,4,4,4">
                     <Grid>
-                        <TextBlock Text="MENU"
-                                   FontFamily="Courier New"
-                                   FontSize="10"
-                                   FontWeight="SemiBold"
+                        <TextBlock Text="MENU" FontFamily="Courier New"
+                                   FontSize="10" FontWeight="SemiBold"
                                    Foreground="#7aaa60"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Top"
@@ -271,13 +302,11 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0"
-                                        x:Name="ObjectivesBtn"
+                                <Button Grid.Column="0" x:Name="ObjectivesBtn"
                                         Content="OBJECTIVES"
                                         Style="{StaticResource GameScreenButton}"
                                         Click="ObjectivesBtn_Click"/>
-                                <Button Grid.Column="1"
-                                        x:Name="CollectionsBtn"
+                                <Button Grid.Column="1" x:Name="CollectionsBtn"
                                         Content="COLLECTIONS"
                                         Style="{StaticResource GameScreenButton}"
                                         Click="CollectionsBtn_Click"/>
@@ -287,13 +316,11 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0"
-                                        x:Name="HistoryBtn"
+                                <Button Grid.Column="0" x:Name="HistoryBtn"
                                         Content="HISTORY"
                                         Style="{StaticResource GameScreenButton}"
                                         Click="HistoryBtn_Click"/>
-                                <Button Grid.Column="1"
-                                        x:Name="PauseBtn"
+                                <Button Grid.Column="1" x:Name="PauseBtn"
                                         Content="PAUSE"
                                         Style="{StaticResource GameScreenButton}"
                                         Click="PauseBtn_Click"/>
@@ -302,24 +329,18 @@
                     </Grid>
                 </Border>
 
-                <!-- CENTER: Time Box -->
-                <Border Grid.Column="1"
-                        BorderBrush="#c8c8b0"
-                        BorderThickness="1"
-                        Margin="4,4,4,4">
+                <!-- TIME BOX -->
+                <Border Grid.Column="1" BorderBrush="#c8c8b0"
+                        BorderThickness="1" Margin="4,4,4,4">
                     <Grid>
-                        <TextBlock Text="TIME"
-                                   FontFamily="Courier New"
-                                   FontSize="10"
-                                   FontWeight="SemiBold"
+                        <TextBlock Text="TIME" FontFamily="Courier New"
+                                   FontSize="10" FontWeight="SemiBold"
                                    Foreground="#c8c8b0"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Top"
                                    Margin="0,2,0,0"/>
                         <controls:TimeBox x:Name="TimeDisplay"
-                                          Day="1"
-                                          Hour="15"
-                                          Minute="0"
+                                          Day="1" Hour="15" Minute="0"
                                           Date="12/06/2012"
                                           Weather="Foggy"
                                           Temperature="8"
@@ -327,13 +348,12 @@
                                           Hazard="None"
                                           IsCurseVisible="False"
                                           Margin="4,14,4,4"/>
-                        <Grid x:Name="TimeOverlay"
-                              Background="#1a1a2a"
+                        <!-- Full TIME overlay -->
+                        <Grid x:Name="TimeOverlay" Background="#1a1a2a"
                               Visibility="Collapsed">
                             <TextBlock x:Name="TimeOverlayText"
                                        Text="[ configuring ]"
-                                       FontFamily="Courier New"
-                                       FontSize="11"
+                                       FontFamily="Courier New" FontSize="11"
                                        Foreground="#4a4a5a"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
@@ -341,16 +361,12 @@
                     </Grid>
                 </Border>
 
-                <!-- RIGHT: Relic counter + Inventory in box -->
-                <Border Grid.Column="2"
-                        BorderBrush="#c8a840"
-                        BorderThickness="1"
-                        Margin="4,4,8,4">
+                <!-- INVENTORY BOX -->
+                <Border Grid.Column="2" BorderBrush="#c8a840"
+                        BorderThickness="1" Margin="4,4,8,4">
                     <Grid>
-                        <TextBlock Text="INVENTORY"
-                                   FontFamily="Courier New"
-                                   FontSize="10"
-                                   FontWeight="SemiBold"
+                        <TextBlock Text="INVENTORY" FontFamily="Courier New"
+                                   FontSize="10" FontWeight="SemiBold"
                                    Foreground="#c8a840"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Top"
@@ -361,14 +377,11 @@
                             <StackPanel VerticalAlignment="Center"
                                         Margin="0,0,8,0">
                                 <TextBlock Text="RELICS"
-                                           FontFamily="Courier New"
-                                           FontSize="11"
+                                           FontFamily="Courier New" FontSize="11"
                                            Foreground="#c8a840"
                                            HorizontalAlignment="Center"/>
-                                <TextBlock x:Name="RelicCount"
-                                           Text="0"
-                                           FontFamily="Courier New"
-                                           FontSize="16"
+                                <TextBlock x:Name="RelicCount" Text="0"
+                                           FontFamily="Courier New" FontSize="16"
                                            Foreground="#c8a840"
                                            HorizontalAlignment="Center"/>
                             </StackPanel>
@@ -376,13 +389,11 @@
                                                    SlotCount="6"
                                                    VerticalAlignment="Center"/>
                         </StackPanel>
-                        <Grid x:Name="InventoryOverlay"
-                              Background="#1a1a2a"
+                        <Grid x:Name="InventoryOverlay" Background="#1a1a2a"
                               Visibility="Collapsed">
                             <TextBlock x:Name="InventoryOverlayText"
                                        Text="[ configuring ]"
-                                       FontFamily="Courier New"
-                                       FontSize="11"
+                                       FontFamily="Courier New" FontSize="11"
                                        Foreground="#4a4a5a"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>

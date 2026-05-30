@@ -2,6 +2,17 @@ using System.Collections.Generic;
 
 namespace LostInAForgottenCity.Engine
 {
+    public class StatEffect
+    {
+        public int Stamina { get; set; } = 0;
+        public int Sleep { get; set; } = 0;
+        public double Sanity { get; set; } = 0;
+        public int HP { get; set; } = 0;
+        public int Soul { get; set; } = 0;
+        public int Resistance { get; set; } = 0;
+        public int TimeMinutes { get; set; } = 0;
+    }
+
     public class DialogueLine
     {
         public string Speaker { get; set; } = "";
@@ -14,6 +25,7 @@ namespace LostInAForgottenCity.Engine
     {
         public string Text { get; set; } = "";
         public string NextSceneId { get; set; } = "";
+        public StatEffect? Effect { get; set; } = null;
     }
 
     public class DialogueScene
@@ -22,6 +34,7 @@ namespace LostInAForgottenCity.Engine
         public List<DialogueLine> Lines { get; set; } = new();
         public List<DialogueChoice> Choices { get; set; } = new();
         public string AutoNextId { get; set; } = "";
+        public StatEffect? OnEnterEffect { get; set; } = null;
     }
 
     public static class DialogueData
@@ -331,7 +344,6 @@ namespace LostInAForgottenCity.Engine
                     Id = "tutorial_scenarios_check",
                     Lines = new List<DialogueLine>(),
                     Choices = new List<DialogueChoice>()
-                    // Handled in code — checks if intro tutorial done
                 },
 
                 ["tutorial_scenarios_locked"] = new DialogueScene
@@ -379,13 +391,6 @@ namespace LostInAForgottenCity.Engine
                     Choices = new List<DialogueChoice>()
                 },
 
-                ["intro_tutorial_begin"] = new DialogueScene
-                {
-                    Id = "intro_tutorial_begin",
-                    Lines = new List<DialogueLine>(),
-                    Choices = new List<DialogueChoice>()
-                },
-
                 ["scenario_selection"] = new DialogueScene
                 {
                     Id = "scenario_selection",
@@ -397,293 +402,131 @@ namespace LostInAForgottenCity.Engine
                 {
                     Id = "fortuneteller_return",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "You return to the tent.",
-            IsNarration = true
-        },
-        new() {
-            Text = "She is already looking at you " +
-                   "as you enter.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Fortuneteller",
-            Text = "You are back."
-        },
-        new() {
-            Speaker = "Fortuneteller",
-            Text = "What is it that you need?"
-        },
-        new() {
-            Text = "The Introduction Tutorial is recommended " +
-                   "for new players.",
-            IsGameline = true
-        }
-    },
+                    {
+                        new() { Text = "You return to the tent.", IsNarration = true },
+                        new() { Text = "She is already looking at you as you enter.", IsNarration = true },
+                        new() { Speaker = "Fortuneteller", Text = "You are back." },
+                        new() { Speaker = "Fortuneteller", Text = "What is it that you need?" },
+                        new() { Text = "The Introduction Tutorial is recommended for new players.", IsGameline = true }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Better be prepared.",
-            NextSceneId = "tutorial_introduction_start"
-        },
-        new() {
-            Text = "I want to focus on something.",
-            NextSceneId = "tutorial_scenarios_check"
-        }
-    }
+                    {
+                        new() { Text = "Better be prepared.", NextSceneId = "tutorial_introduction_start" },
+                        new() { Text = "I want to focus on something.", NextSceneId = "tutorial_scenarios_check" }
+                    }
                 },
 
                 ["intro_tutorial_begin"] = new DialogueScene
                 {
                     Id = "intro_tutorial_begin",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "A hiker is traveling through the mountains.",
-            IsNarration = true
-        },
-        new() {
-            Text = "He has been doing this for days, " +
-                   "and he is slowly running out of supplies.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "Why didn't I bring more supplies? " +
-                   "At this rate, I won't even be able to move " +
-                   "my legs in a day. I have to find somewhere " +
-                   "to rest and restock, or I will become " +
-                   "the next missing corpse."
-        }
-    },
+                    {
+                        new() { Text = "A hiker is traveling through the mountains.", IsNarration = true },
+                        new() { Text = "He has been doing this for days, and he is slowly running out of supplies.", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "Why didn't I bring more supplies? At this rate, I won't even be able to move my legs in a day. I have to find somewhere to rest and restock, or I will become the next missing corpse." }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Climb higher.",
-            NextSceneId = "intro_climb_higher"
-        },
-        new() {
-            Text = "Look for a sign.",
-            NextSceneId = "intro_look_sign"
-        }
-    }
+                    {
+                        new() { Text = "Climb higher.", NextSceneId = "intro_climb_higher" },
+                        new() { Text = "Look for a sign.", NextSceneId = "intro_look_sign" }
+                    }
                 },
 
                 ["intro_climb_higher"] = new DialogueScene
                 {
                     Id = "intro_climb_higher",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "The hiker climbs higher to see his surroundings.",
-            IsNarration = true
-        },
-        new() {
-            Text = "In the distance he sees the silhouettes of buildings.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "There is a city there, and it looks like " +
-                   "it's covered in fog. This will make it harder " +
-                   "to find, but there should be people nearby. " +
-                   "I just have to find them."
-        }
-    },
+                    {
+                        new() { Text = "The hiker climbs higher to see his surroundings.", IsNarration = true },
+                        new() { Text = "In the distance he sees the silhouettes of buildings.", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "There is a city there, and it looks like it's covered in fog. This will make it harder to find, but there should be people nearby. I just have to find them." }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Head towards the city.",
-            NextSceneId = "intro_towards_city"
-        },
-        new() {
-            Text = "Look closer.",
-            NextSceneId = "intro_look_closer"
-        }
-    }
+                    {
+                        new() { Text = "Head towards the city.", NextSceneId = "intro_towards_city" },
+                        new() { Text = "Look closer.", NextSceneId = "intro_look_closer" }
+                    }
                 },
 
                 ["intro_look_closer"] = new DialogueScene
                 {
                     Id = "intro_look_closer",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "He tries to look a bit harder at the " +
-                   "silhouette of the city.",
-            IsNarration = true
-        },
-        new() {
-            Text = "But suddenly he finds something weird about it, " +
-                   "like it was frozen in time.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "Weird, something about that city doesn't feel " +
-                   "right. Maybe it's because of the fog. " +
-                   "I shouldn't dwell on it any longer."
-        }
-    },
+                    {
+                        new() { Text = "He tries to look a bit harder at the silhouette of the city.", IsNarration = true },
+                        new() { Text = "But suddenly he finds something weird about it, like it was frozen in time.", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "Weird, something about that city doesn't feel right. Maybe it's because of the fog. I shouldn't dwell on it any longer." }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Head towards the city.",
-            NextSceneId = "intro_towards_city"
-        }
-    }
+                    {
+                        new() { Text = "Head towards the city.", NextSceneId = "intro_towards_city" }
+                    }
                 },
 
                 ["intro_look_sign"] = new DialogueScene
                 {
                     Id = "intro_look_sign",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "The hiker starts looking side to side " +
-                   "while walking on the dirt path.",
-            IsNarration = true
-        },
-        new() {
-            Text = "Suddenly he sees a sign covered in vines.",
-            IsNarration = true
-        },
-        new() {
-            Text = "It points to a city and shows the distance, " +
-                   "but the name of the city is no longer visible " +
-                   "due to long time without maintenance.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "Good, there is a city nearby, and there should " +
-                   "be more signs that I can follow. If everything " +
-                   "goes well I should reach it in half a day."
-        }
-    },
+                    {
+                        new() { Text = "The hiker starts looking side to side while walking on the dirt path.", IsNarration = true },
+                        new() { Text = "Suddenly he sees a sign covered in vines.", IsNarration = true },
+                        new() { Text = "It points to a city and shows the distance, but the name of the city is no longer visible due to long time without maintenance.", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "Good, there is a city nearby, and there should be more signs that I can follow. If everything goes well I should reach it in half a day." }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Head towards the city.",
-            NextSceneId = "intro_towards_city"
-        },
-        new() {
-            Text = "Examine the base of the sign.",
-            NextSceneId = "intro_examine_sign"
-        }
-    }
+                    {
+                        new() { Text = "Head towards the city.", NextSceneId = "intro_towards_city" },
+                        new() { Text = "Examine the base of the sign.", NextSceneId = "intro_examine_sign" }
+                    }
                 },
 
                 ["intro_examine_sign"] = new DialogueScene
                 {
                     Id = "intro_examine_sign",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "When he was about to leave, he suddenly " +
-                   "saw a note held down by a rock.",
-            IsNarration = true
-        },
-        new() {
-            Text = "In it he read: \"I may slowly be losing my mind, " +
-                   "but these things seem so real, and I am not " +
-                   "planning to approach them, " +
-                   "and neither should you.\"",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "Is he talking about a wild animal? " +
-                   "I don't have time to think about it."
-        }
-    },
+                    {
+                        new() { Text = "When he was about to leave, he suddenly saw a note held down by a rock.", IsNarration = true },
+                        new() { Text = "In it he read: \"I may slowly be losing my mind, but these things seem so real, and I am not planning to approach them, and neither should you.\"", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "Is he talking about a wild animal? I don't have time to think about it." }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Head towards the city.",
-            NextSceneId = "intro_towards_city"
-        }
-    }
+                    {
+                        new() { Text = "Head towards the city.", NextSceneId = "intro_towards_city" }
+                    }
                 },
 
                 ["intro_towards_city"] = new DialogueScene
                 {
                     Id = "intro_towards_city",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "As he goes on his way, eventually he " +
-                   "sees the city in the distance.",
-            IsNarration = true
-        },
-        new() {
-            Text = "But before reaching it, he sees a pit, " +
-                   "and the only path forward is a suspended bridge.",
-            IsNarration = true
-        },
-        new() {
-            Text = "The bridge is old and slowly crumbling.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "Damn, I can't reach the city like this. " +
-                   "I should have guessed that not many people " +
-                   "go through here. But if I try to turn back, " +
-                   "I don't think I will get out of this. " +
-                   "What should I do?"
-        }
-    },
+                    {
+                        new() { Text = "As he goes on his way, eventually he sees the city in the distance.", IsNarration = true },
+                        new() { Text = "But before reaching it, he sees a pit, and the only path forward is a suspended bridge.", IsNarration = true },
+                        new() { Text = "The bridge is old and slowly crumbling.", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "Damn, I can't reach the city like this. I should have guessed that not many people go through here. But if I try to turn back, I don't think I will get out of this. What should I do?" }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Cross the bridge.",
-            NextSceneId = "intro_cross_bridge"
-        },
-        new() {
-            Text = "Leave your backpack behind.",
-            NextSceneId = "intro_leave_backpack"
-        },
-        new() {
-            Text = "Try finding another way around.",
-            NextSceneId = "intro_find_another_way"
-        }
-    }
+                    {
+                        new() { Text = "Cross the bridge.", NextSceneId = "intro_cross_bridge" },
+                        new() { Text = "Leave your backpack behind.", NextSceneId = "intro_leave_backpack" },
+                        new() { Text = "Try finding another way around.", NextSceneId = "intro_find_another_way" }
+                    }
                 },
 
                 ["intro_cross_bridge"] = new DialogueScene
                 {
                     Id = "intro_cross_bridge",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "As the hiker crosses the bridge, he " +
-                   "suddenly hears a ripping sound.",
-            IsNarration = true
-        },
-        new() {
-            Text = "The strain on the ropes and the planks " +
-                   "is too high, and they snap under the pressure.",
-            IsNarration = true
-        },
-        new() {
-            Text = "The hiker was too far from any side " +
-                   "and he fallen into the pit.",
-            IsNarration = true
-        },
-        new() {
-            Text = "His journey ends here.",
-            IsNarration = true
-        }
-    },
+                    {
+                        new() { Text = "As the hiker crosses the bridge, he suddenly hears a ripping sound.", IsNarration = true },
+                        new() { Text = "The strain on the ropes and the planks is too high, and they snap under the pressure.", IsNarration = true },
+                        new() { Text = "The hiker was too far from any side and he fallen into the pit.", IsNarration = true },
+                        new() { Text = "His journey ends here.", IsNarration = true }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Understood.",
-            NextSceneId = "intro_death_bridge"
-        }
-    }
+                    {
+                        new() { Text = "Understood.", NextSceneId = "intro_death_bridge" }
+                    }
                 },
 
                 ["intro_death_bridge"] = new DialogueScene
@@ -697,45 +540,18 @@ namespace LostInAForgottenCity.Engine
                 {
                     Id = "intro_find_another_way",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "He decides it is too dangerous to cross " +
-                   "the bridge, and turning back would be a " +
-                   "death sentence. So without any choice " +
-                   "he starts walking around it.",
-            IsNarration = true
-        },
-        new() {
-            Text = "As he walks, time passes and passes.",
-            IsNarration = true
-        },
-        new() {
-            Text = "Eventually he managed to bypass the pit, " +
-                   "but at this point it no longer mattered. " +
-                   "He was too exhausted to keep moving.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "Why was I so stupid. Now I can't do anything. " +
-                   "Maybe someone will find me."
-        },
-        new() {
-            Text = "But nobody came.",
-            IsNarration = true
-        },
-        new() {
-            Text = "The hiker's journey ends here.",
-            IsNarration = true
-        }
-    },
+                    {
+                        new() { Text = "He decides it is too dangerous to cross the bridge, and turning back would be a death sentence. So without any choice he starts walking around it.", IsNarration = true },
+                        new() { Text = "As he walks, time passes and passes.", IsNarration = true },
+                        new() { Text = "Eventually he managed to bypass the pit, but at this point it no longer mattered. He was too exhausted to keep moving.", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "Why was I so stupid. Now I can't do anything. Maybe someone will find me." },
+                        new() { Text = "But nobody came.", IsNarration = true },
+                        new() { Text = "The hiker's journey ends here.", IsNarration = true }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Understood.",
-            NextSceneId = "intro_death_exhaustion"
-        }
-    }
+                    {
+                        new() { Text = "Understood.", NextSceneId = "intro_death_exhaustion" }
+                    }
                 },
 
                 ["intro_death_exhaustion"] = new DialogueScene
@@ -749,73 +565,32 @@ namespace LostInAForgottenCity.Engine
                 {
                     Id = "intro_leave_backpack",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "The hiker decides to risk the crossing " +
-                   "and puts down all his equipment.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "It hurts to leave my stuff behind but " +
-                   "survival is more important at the moment. " +
-                   "It won't be of any use to a dead man. " +
-                   "Besides, I will come back for it later."
-        },
-        new() {
-            Text = "As he crosses, the bridge cracks and " +
-                   "stretches but still holds.",
-            IsNarration = true
-        },
-        new() {
-            Text = "When he reaches the other side he takes " +
-                   "a big sigh of relief. " +
-                   "Now he is closer to his goal.",
-            IsNarration = true
-        }
-    },
+                    {
+                        new() { Text = "The hiker decides to risk the crossing and puts down all his equipment.", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "It hurts to leave my stuff behind but survival is more important at the moment. It won't be of any use to a dead man. Besides, I will come back for it later." },
+                        new() { Text = "As he crosses, the bridge cracks and stretches but still holds.", IsNarration = true },
+                        new() { Text = "When he reaches the other side he takes a big sigh of relief. Now he is closer to his goal.", IsNarration = true }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Continue on your way.",
-            NextSceneId = "intro_continue_path"
-        }
-    }
+                    {
+                        new() { Text = "Continue on your way.", NextSceneId = "intro_continue_path" }
+                    }
                 },
 
                 ["intro_continue_path"] = new DialogueScene
                 {
                     Id = "intro_continue_path",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "After the bridge, the hiker already " +
-                   "started descending down the path " +
-                   "and out of the mountains.",
-            IsNarration = true
-        },
-        new() {
-            Text = "On the way he finds edible roots.",
-            IsNarration = true
-        },
-        new() {
-            Speaker = "Hiker",
-            Text = "Not the best meal but it will keep " +
-                   "me going for another few days."
-        },
-        new() {
-            Text = "Eventually he reaches the edge " +
-                   "of the mountains.",
-            IsNarration = true
-        }
-    },
+                    {
+                        new() { Text = "After the bridge, the hiker already started descending down the path and out of the mountains.", IsNarration = true },
+                        new() { Text = "On the way he finds edible roots.", IsNarration = true },
+                        new() { Speaker = "Hiker", Text = "Not the best meal but it will keep me going for another few days." },
+                        new() { Text = "Eventually he reaches the edge of the mountains.", IsNarration = true }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Confirm.",
-            NextSceneId = "intro_mountain_edge"
-        }
-    }
+                    {
+                        new() { Text = "Confirm.", NextSceneId = "intro_mountain_edge" }
+                    }
                 },
 
                 ["intro_mountain_edge"] = new DialogueScene
@@ -824,86 +599,55 @@ namespace LostInAForgottenCity.Engine
                     Lines = new List<DialogueLine>(),
                     Choices = new List<DialogueChoice>()
                 },
+
                 ["intro_mountain_edge_arrival"] = new DialogueScene
                 {
                     Id = "intro_mountain_edge_arrival",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "He arrived in Mountain Edge.",
-            IsNarration = true
-        },
-        new() {
-            Text = "Through the fog, he can see:",
-            IsNarration = true
-        },
-        new() {
-            Text = "- Parking Lot",
-            IsNarration = true
-        },
-        new() {
-            Text = "- Empty Booth",
-            IsNarration = true
-        },
-        new() {
-            Text = "- Cluster of Signs",
-            IsNarration = true
-        }
-    },
+                    {
+                        new() { Text = "He arrived in Mountain Edge.", IsNarration = true },
+                        new() { Text = "Through the fog, he can see:", IsNarration = true },
+                        new() { Text = "- Parking Lot", IsNarration = true },
+                        new() { Text = "- Empty Booth", IsNarration = true },
+                        new() { Text = "- Cluster of Signs", IsNarration = true }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Look around.",
-            NextSceneId = "intro_look_around"
-        },
-        new() {
-            Text = "Head to the Parking Lot.",
-            NextSceneId = "intro_move_parking_lot"
-        },
-        new() {
-            Text = "Head to the Empty Booth.",
-            NextSceneId = "intro_move_booth"
-        },
-        new() {
-            Text = "Head to the Cluster of Signs.",
-            NextSceneId = "intro_move_signs"
-        }
-    }
+                    {
+                        new() {
+                            Text = "Look around.",
+                            NextSceneId = "intro_look_around"
+                        },
+                        new() {
+                            Text = "Head to the Parking Lot.",
+                            NextSceneId = "intro_move_parking_lot",
+                            Effect = new StatEffect { Sleep = -2, TimeMinutes = 5 }
+                        },
+                        new() {
+                            Text = "Head to the Empty Booth.",
+                            NextSceneId = "intro_move_booth",
+                            Effect = new StatEffect { Sleep = -3, TimeMinutes = 10 }
+                        },
+                        new() {
+                            Text = "Head to the Cluster of Signs.",
+                            NextSceneId = "intro_move_signs",
+                            Effect = new StatEffect { Sleep = -5, TimeMinutes = 20 }
+                        }
+                    }
                 },
 
                 ["intro_look_around"] = new DialogueScene
                 {
                     Id = "intro_look_around",
+                    OnEnterEffect = new StatEffect { Stamina = -1, TimeMinutes = 5 },
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Text = "The hiker takes a moment to assess " +
-                   "his surroundings more carefully.",
-            IsNarration = true
-        },
-        new() {
-            Text = "He can now see more clearly:",
-            IsNarration = true
-        },
-        new() {
-            // Distances revealed — randomized in real game
-            // Fixed for tutorial
-            Text = "- Parking Lot [IMMEDIATE]",
-            IsNarration = true
-        },
-        new() {
-            Text = "- Empty Booth [CLOSE]",
-            IsNarration = true
-        },
-        new() {
-            Text = "- Cluster of Signs [FAR]",
-            IsNarration = true
-        },
-        new() {
-            Text = "Used 1 stamina. 5 minutes passed.",
-            IsGameline = true
-        }
-    },
+                    {
+                        new() { Text = "The hiker takes a moment to assess his surroundings more carefully.", IsNarration = true },
+                        new() { Text = "He can now see more clearly:", IsNarration = true },
+                        new() { Text = "- Parking Lot [IMMEDIATE]", IsNarration = true },
+                        new() { Text = "- Empty Booth [CLOSE]", IsNarration = true },
+                        new() { Text = "- Cluster of Signs [FAR]", IsNarration = true },
+                        new() { Text = "Used 1 stamina. 5 minutes passed.", IsGameline = true }
+                    },
                     AutoNextId = "intro_look_around_reveal"
                 },
 
@@ -911,49 +655,51 @@ namespace LostInAForgottenCity.Engine
                 {
                     Id = "intro_look_around_reveal",
                     Lines = new List<DialogueLine>
-    {
-        new() {
-            Speaker = "Fortuneteller",
-            Text = "Everything you do takes time. " +
-                   "The larger the scale, the more time " +
-                   "it will take. But do not forget — " +
-                   "you cannot always afford time."
-        },
-        new() {
-            Speaker = "Fortuneteller",
-            Text = "Everything you do also costs effort. " +
-                   "If you push too far, you may overdo it. " +
-                   "And when that happens, " +
-                   "a price must be paid."
-        },
-        new() {
-            Text = "Specific actions will cost time. " +
-                   "While time is passing, some things can happen.",
-            IsGameline = true
-        },
-        new() {
-            Text = "Specific actions cost stamina. " +
-                   "When the bar is empty you cannot move " +
-                   "or perform actions. In an emergency " +
-                   "you can move at the cost of your HP.",
-            IsGameline = true
-        }
-    },
+                    {
+                        new() { Speaker = "Fortuneteller", Text = "Everything you do takes time. The larger the scale, the more time it will take. But do not forget — you cannot always afford time." },
+                        new() { Speaker = "Fortuneteller", Text = "Everything you do also costs effort. If you push too far, you may overdo it. And when that happens, a price must be paid." },
+                        new() { Text = "Specific actions will cost time. While time is passing, some things can happen.", IsGameline = true },
+                        new() { Text = "Specific actions cost stamina. When the bar is empty you cannot move or perform actions. In an emergency you can move at the cost of your HP.", IsGameline = true }
+                    },
                     Choices = new List<DialogueChoice>
-    {
-        new() {
-            Text = "Head to the Parking Lot. [IMMEDIATE — 5 min]",
-            NextSceneId = "intro_move_parking_lot"
-        },
-        new() {
-            Text = "Head to the Empty Booth. [CLOSE — 10 min]",
-            NextSceneId = "intro_move_booth"
-        },
-        new() {
-            Text = "Head to the Cluster of Signs. [FAR — 20 min]",
-            NextSceneId = "intro_move_signs"
-        }
-    }
+                    {
+                        new() {
+                            Text = "Head to the Parking Lot. [IMMEDIATE — 5 min]",
+                            NextSceneId = "intro_move_parking_lot",
+                            Effect = new StatEffect { Sleep = -2, TimeMinutes = 5 }
+                        },
+                        new() {
+                            Text = "Head to the Empty Booth. [CLOSE — 10 min]",
+                            NextSceneId = "intro_move_booth",
+                            Effect = new StatEffect { Sleep = -3, TimeMinutes = 10 }
+                        },
+                        new() {
+                            Text = "Head to the Cluster of Signs. [FAR — 20 min]",
+                            NextSceneId = "intro_move_signs",
+                            Effect = new StatEffect { Sleep = -5, TimeMinutes = 20 }
+                        }
+                    }
+                },
+
+                ["intro_move_parking_lot"] = new DialogueScene
+                {
+                    Id = "intro_move_parking_lot",
+                    Lines = new List<DialogueLine>(),
+                    Choices = new List<DialogueChoice>()
+                },
+
+                ["intro_move_booth"] = new DialogueScene
+                {
+                    Id = "intro_move_booth",
+                    Lines = new List<DialogueLine>(),
+                    Choices = new List<DialogueChoice>()
+                },
+
+                ["intro_move_signs"] = new DialogueScene
+                {
+                    Id = "intro_move_signs",
+                    Lines = new List<DialogueLine>(),
+                    Choices = new List<DialogueChoice>()
                 },
             };
         }
