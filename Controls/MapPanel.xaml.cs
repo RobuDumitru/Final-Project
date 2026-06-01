@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace LostInAForgottenCity.Controls
 {
@@ -16,8 +17,7 @@ namespace LostInAForgottenCity.Controls
 
     public enum SpecialMarker
     {
-        None,
-        CurrentLocation,
+        None, CurrentLocation,
         MainQuestActive, MainQuestAvailable,
         SideQuestActive, SideQuestAvailable,
         SpecialQuestActive, SpecialQuestAvailable,
@@ -55,6 +55,14 @@ namespace LostInAForgottenCity.Controls
         public double TravelProgress { get; set; } = 0.0;
     }
 
+    public class BorderEntry
+    {
+        public string Direction { get; set; } = "S"; // N S E W
+        public double PositionRatio { get; set; } = 0.5; // 0.0-1.0 along border
+        public string ConnectsToId { get; set; } = ""; // nearest landmark id
+        public bool IsPlayerHere { get; set; } = false;
+    }
+
     public class MapTab
     {
         public string Id { get; set; } = "";
@@ -64,25 +72,34 @@ namespace LostInAForgottenCity.Controls
         public bool IsUnlocked { get; set; } = false;
         public List<MapNode> Nodes { get; set; } = new();
         public List<MapConnection> Connections { get; set; } = new();
+        public List<BorderEntry> BorderEntries { get; set; } = new(); // ← new
     }
 
     public partial class MapPanel : UserControl
     {
-        // ── Fields ──────────────────────────────
+        // ── Constants ────────────────────────────
+        private const int SegmentPixelLength = 18;  // pixels per dash segment
+        private const int SegmentTravelMs = 500;    // ms per segment
+
+        // ── Fields ───────────────────────────────
         private List<MapTab> _openTabs = new();
         private List<MapTab> _availableTabs = new();
         private MapTab? _activeTab = null;
         private string _currentLocationId = "";
-        private string _travellingToId = "";
-        private const int MaxTabs = 5;
+
+        // Travel
+        private DispatcherTimer _travelTimer = new();
+        private string _travelFromId = "";
+        private string _travelToId = "";
+        private int _totalSegments = 0;
+        private int _currentSegment = 0;
+        public event Action? OnTravelComplete;
+        public bool IsTravelling => _travelTimer.IsEnabled;
 
         // Drag
         private bool _isDragging = false;
         private Point _dragStart;
-        private double _dragOriginX;
-        private double _dragOriginY;
-
-        // Zoom
+        private double _dragOriginX, _dragOriginY;
         private const double MinZoom = 0.5;
         private const double MaxZoom = 3.0;
 
@@ -92,25 +109,29 @@ namespace LostInAForgottenCity.Controls
         public MapPanel()
         {
             InitializeComponent();
+            _travelTimer.Interval =
+                TimeSpan.FromMilliseconds(SegmentTravelMs);
+            _travelTimer.Tick += TravelTick;
         }
 
         // ── Public API ───────────────────────────
 
         public void LoadMap(List<MapNode> nodes,
                            List<MapConnection> connections,
-                           string tabId,
-                           string tabTitle,
+                           string tabId, string tabTitle,
                            MapType mapType,
                            string currentLocationId,
                            string travellingToId = "")
         {
             _currentLocationId = currentLocationId;
-            _travellingToId = travellingToId;
 
-            // Create or update the current tab
-            var existingTab = _openTabs.FirstOrDefault(t => t.Id == tabId);
+            var existingTab = _openTabs.FirstOrDefault(
+                t => t.Id == tabId);
             if (existingTab == null)
             {
+                foreach (var t in _openTabs)
+                    t.IsCurrentMap = false;
+
                 var tab = new MapTab
                 {
                     Id = tabId,
@@ -121,10 +142,6 @@ namespace LostInAForgottenCity.Controls
                     Nodes = nodes,
                     Connections = connections
                 };
-                // Mark previous current as non-current
-                foreach (var t in _openTabs)
-                    t.IsCurrentMap = false;
-
                 _openTabs.Add(tab);
                 _activeTab = tab;
             }
@@ -148,6 +165,76 @@ namespace LostInAForgottenCity.Controls
                 _availableTabs.Add(tab);
         }
 
+        public void UpdateCurrentLocation(string locationId)
+        {
+            _currentLocationId = locationId;
+            DrawMap();
+        }
+
+        // ── Travel ───────────────────────────────
+
+        public void StartTravel(string fromId, string toId)
+        {
+            if (_activeTab == null) return;
+
+            var from = _activeTab.Nodes.Find(n => n.Id == fromId);
+            var to = _activeTab.Nodes.Find(n => n.Id == toId);
+            if (from == null || to == null) return;
+
+            _travelFromId = fromId;
+            _travelToId = toId;
+            _totalSegments = CalculateSegments(from, to);
+            _currentSegment = 0;
+
+            // Mark connection as travelling
+            var conn = _activeTab.Connections.FirstOrDefault(
+                c => (c.FromId == fromId && c.ToId == toId) ||
+                     (c.FromId == toId && c.ToId == fromId));
+            if (conn != null)
+            {
+                conn.IsPlayerTravelling = true;
+                conn.TravelProgress = 0;
+            }
+
+            _travelTimer.Start();
+            DrawMap();
+        }
+
+        private void TravelTick(object? sender, EventArgs e)
+        {
+            _currentSegment++;
+            double progress = _currentSegment / (double)_totalSegments;
+
+            var conn = _activeTab?.Connections.FirstOrDefault(
+                c => (c.FromId == _travelFromId &&
+                      c.ToId == _travelToId) ||
+                     (c.FromId == _travelToId &&
+                      c.ToId == _travelFromId));
+
+            if (conn != null)
+                conn.TravelProgress = progress;
+
+            DrawMap();
+
+            if (_currentSegment >= _totalSegments)
+            {
+                _travelTimer.Stop();
+                if (conn != null)
+                    conn.IsPlayerTravelling = false;
+                _currentLocationId = _travelToId;
+                DrawMap();
+                OnTravelComplete?.Invoke();
+            }
+        }
+
+        private int CalculateSegments(MapNode from, MapNode to)
+        {
+            double dx = (to.X + 20) - (from.X + 20);
+            double dy = (to.Y + 20) - (from.Y + 20);
+            double distance = Math.Sqrt(dx * dx + dy * dy);
+            return Math.Max(2, (int)(distance / SegmentPixelLength));
+        }
+
         // ── Drawing ──────────────────────────────
 
         private void DrawMap()
@@ -157,217 +244,333 @@ namespace LostInAForgottenCity.Controls
             MapCanvas.Children.Clear();
             SectionTitle.Text = _activeTab.Title.ToUpper();
 
+            // Draw border entries FIRST (behind everything)
+            foreach (var entry in _activeTab.BorderEntries)
+                DrawBorderEntry(entry);
+
             // Draw connections
             foreach (var conn in _activeTab.Connections)
             {
                 var from = _activeTab.Nodes.Find(n => n.Id == conn.FromId);
                 var to = _activeTab.Nodes.Find(n => n.Id == conn.ToId);
                 if (from == null || to == null) continue;
-
-                double x1 = from.X + 20;
-                double y1 = from.Y + 20;
-                double x2 = to.X + 20;
-                double y2 = to.Y + 20;
-
-                bool bothKnown = from.State != LocationState.Undiscovered
-                              && to.State != LocationState.Undiscovered;
-
-                var line = new Line
-                {
-                    X1 = x1,
-                    Y1 = y1,
-                    X2 = x2,
-                    Y2 = y2,
-                    Stroke = new SolidColorBrush(bothKnown
-                        ? Color.FromRgb(0x4a, 0x7a, 0x4a)
-                        : Color.FromRgb(0x2a, 0x3a, 0x2a)),
-                    StrokeThickness = 1.5
-                };
-                MapCanvas.Children.Add(line);
-
-                // Junction dots
-                foreach (var (cx, cy) in new[] { (x1, y1), (x2, y2) })
-                {
-                    var dot = new Ellipse
-                    {
-                        Width = 4,
-                        Height = 4,
-                        Fill = new SolidColorBrush(bothKnown
-                            ? Color.FromRgb(0x4a, 0x7a, 0x4a)
-                            : Color.FromRgb(0x2a, 0x3a, 0x2a))
-                    };
-                    Canvas.SetLeft(dot, cx - 2);
-                    Canvas.SetTop(dot, cy - 2);
-                    MapCanvas.Children.Add(dot);
-                }
-
-                // Travel indicator
-                if (conn.IsPlayerTravelling)
-                {
-                    double tx = x1 + (x2 - x1) * conn.TravelProgress;
-                    double ty = y1 + (y2 - y1) * conn.TravelProgress;
-                    var traveller = new Ellipse
-                    {
-                        Width = 6,
-                        Height = 6,
-                        Fill = new SolidColorBrush(
-                            Color.FromRgb(0x7a, 0xaa, 0x60))
-                    };
-                    Canvas.SetLeft(traveller, tx - 3);
-                    Canvas.SetTop(traveller, ty - 3);
-                    MapCanvas.Children.Add(traveller);
-                }
+                DrawRoad(from, to, conn);
             }
 
-            // Draw nodes
+            // Draw nodes (on top)
             foreach (var node in _activeTab.Nodes)
                 DrawNode(node);
 
-            // Auto size canvas
+            // Size canvas
             double maxX = 0, maxY = 0;
             foreach (var node in _activeTab.Nodes)
             {
-                if (node.X + 80 > maxX) maxX = node.X + 80;
-                if (node.Y + 60 > maxY) maxY = node.Y + 60;
+                if (node.X + NodeBoxWidth + 10 > maxX)
+                    maxX = node.X + NodeBoxWidth + 10;
+                if (node.Y + NodeBoxHeight + 10 > maxY)
+                    maxY = node.Y + NodeBoxHeight + 10;
             }
-            MapCanvas.Width = maxX;
-            MapCanvas.Height = maxY;
+            MapCanvas.Width = Math.Max(maxX, 200);
+            MapCanvas.Height = Math.Max(maxY, 200);
+        }
+
+        private void DrawBorderEntry(BorderEntry entry)
+        {
+            double cw = MapCanvas.Width > 0 ? MapCanvas.Width : 280;
+            double ch = MapCanvas.Height > 0 ? MapCanvas.Height : 300;
+
+            // Entry point on border
+            double ex, ey;
+            switch (entry.Direction)
+            {
+                case "S": ex = entry.PositionRatio * cw; ey = ch; break;
+                case "N": ex = entry.PositionRatio * cw; ey = 0; break;
+                case "W": ex = 0; ey = entry.PositionRatio * ch; break;
+                case "E": ex = cw; ey = entry.PositionRatio * ch; break;
+                default: return;
+            }
+
+            // Arrow indicator on border
+            var arrowColor = Color.FromRgb(0x7a, 0xaa, 0x60);
+            const double as2 = 5;
+            PointCollection arrowPts = entry.Direction switch
+            {
+                "S" => new PointCollection {
+            new(ex - as2, ey),
+            new(ex + as2, ey),
+            new(ex, ey - as2 * 1.5) },
+                "N" => new PointCollection {
+            new(ex - as2, ey),
+            new(ex + as2, ey),
+            new(ex, ey + as2 * 1.5) },
+                "W" => new PointCollection {
+            new(ex, ey - as2),
+            new(ex, ey + as2),
+            new(ex + as2 * 1.5, ey) },
+                _ => new PointCollection {
+            new(ex, ey - as2),
+            new(ex, ey + as2),
+            new(ex - as2 * 1.5, ey) }
+            };
+
+            MapCanvas.Children.Add(new Polygon
+            {
+                Points = arrowPts,
+                Fill = new SolidColorBrush(arrowColor)
+            });
+
+            // Path from border to nearest landmark
+            var nearest = _activeTab?.Nodes.FirstOrDefault(
+                n => n.Id == entry.ConnectsToId);
+            if (nearest != null)
+            {
+                Point edge = GetBoxEdgePoint(nearest, ex, ey);
+                DrawDashedLine(ex, ey, edge.X, edge.Y, arrowColor);
+            }
+
+            // Player dot at border if here
+            if (entry.IsPlayerHere)
+                DrawTravelDot(ex, ey);
+        }
+
+        private void DrawRoad(MapNode from, MapNode to,
+            MapConnection conn)
+        {
+            Point center1 = GetBoxCenter(from);
+            Point center2 = GetBoxCenter(to);
+
+            // Stop at box edges
+            Point p1 = GetBoxEdgePoint(from, center2.X, center2.Y);
+            Point p2 = GetBoxEdgePoint(to, center1.X, center1.Y);
+
+            bool bothKnown =
+                from.State != LocationState.Undiscovered &&
+                to.State != LocationState.Undiscovered;
+
+            Color roadColor = bothKnown
+                ? Color.FromRgb(0x4a, 0x7a, 0x4a)
+                : Color.FromRgb(0x2a, 0x3a, 0x2a);
+
+            DrawDashedLine(p1.X, p1.Y, p2.X, p2.Y, roadColor);
+
+            // Travel dot
+            if (conn.IsPlayerTravelling)
+            {
+                bool forward = conn.FromId == _travelFromId;
+                double progress = forward
+                    ? conn.TravelProgress
+                    : 1.0 - conn.TravelProgress;
+
+                double px = p1.X + (p2.X - p1.X) * progress;
+                double py = p1.Y + (p2.Y - p1.Y) * progress;
+
+                DrawTravelDot(px, py);
+            }
+        }
+
+        private void DrawDashedLine(double x1, double y1,
+            double x2, double y2, Color color,
+            double thickness = 1.5)
+        {
+            int segments = CalculateSegments(x1, y1, x2, y2);
+            for (int s = 0; s < segments; s++)
+            {
+                double t1 = s / (double)segments;
+                double t2 = (s + 0.6) / (double)segments;
+                var dash = new Line
+                {
+                    X1 = x1 + (x2 - x1) * t1,
+                    Y1 = y1 + (y2 - y1) * t1,
+                    X2 = x1 + (x2 - x1) * t2,
+                    Y2 = y1 + (y2 - y1) * t2,
+                    Stroke = new SolidColorBrush(color),
+                    StrokeThickness = thickness
+                };
+                MapCanvas.Children.Add(dash);
+            }
+        }
+
+        private void DrawTravelDot(double x, double y)
+        {
+            var dot = new Ellipse
+            {
+                Width = 7,
+                Height = 7,
+                Fill = new SolidColorBrush(
+                    Color.FromRgb(0x7a, 0xaa, 0x60)),
+                Stroke = new SolidColorBrush(
+                    Color.FromRgb(0x1a, 0x2a, 0x1a)),
+                StrokeThickness = 1
+            };
+            Canvas.SetLeft(dot, x - 3.5);
+            Canvas.SetTop(dot, y - 3.5);
+            MapCanvas.Children.Add(dot);
+        }
+
+        private int CalculateSegments(double x1, double y1,
+            double x2, double y2)
+        {
+            double dx = x2 - x1;
+            double dy = y2 - y1;
+            double distance = Math.Sqrt(dx * dx + dy * dy);
+            return Math.Max(2, (int)(distance / SegmentPixelLength));
         }
 
         private void DrawNode(MapNode node)
         {
             bool isCurrent = node.Id == _currentLocationId;
-            bool isTravelling = node.Id == _travellingToId;
             bool isUndiscovered = node.State == LocationState.Undiscovered;
-
-            var container = new StackPanel
-            {
-                Orientation = Orientation.Vertical,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-
-            string stateIcon = node.State switch
-            {
-                LocationState.Undiscovered => "□",
-                LocationState.Discovered => "◈",
-                LocationState.Visited => "◉",
-                LocationState.Explored => "■",
-                LocationState.Looted => "◆",
-                _ => "□"
-            };
 
             SpecialMarker effectiveSpecial = node.Special;
             if (node.HasDiscoveredSafeRoom &&
                 node.Special == SpecialMarker.None)
                 effectiveSpecial = SpecialMarker.SafeRoom;
 
-            string specialIcon = effectiveSpecial switch
+            // ── Box border ────────────────────────────
+            var box = new Border
             {
-                SpecialMarker.MainQuestActive => "★",
-                SpecialMarker.MainQuestAvailable => "☆",
-                SpecialMarker.SideQuestActive => "◈",
-                SpecialMarker.SideQuestAvailable => "◇",
-                SpecialMarker.SpecialQuestActive => "✦",
-                SpecialMarker.SpecialQuestAvailable => "✧",
-                SpecialMarker.Unavailable => "✕",
-                SpecialMarker.Locked => "🔒",
-                SpecialMarker.Danger => "▲",
-                SpecialMarker.Deadly => "💀",
-                SpecialMarker.SafeRoom => "⌂",
-                _ => ""
+                Width = NodeBoxWidth,
+                Height = NodeBoxHeight,
+                BorderBrush = isCurrent
+                    ? new SolidColorBrush(Color.FromRgb(0x7a, 0xaa, 0x60))
+                    : isUndiscovered
+                        ? new SolidColorBrush(Color.FromRgb(0x2a, 0x3a, 0x2a))
+                        : new SolidColorBrush(Color.FromRgb(0x3a, 0x5a, 0x3a)),
+                BorderThickness = new Thickness(isCurrent ? 2 : 1),
+                Background = new SolidColorBrush(
+                    Color.FromRgb(0x0a, 0x12, 0x0a)),
+                Padding = new Thickness(3, 2, 3, 2)
             };
 
-            double iconSize = node.Type == LocationType.Bridge ? 11 : 14;
+            // ── Content ───────────────────────────────
+            var content = new StackPanel
+            {
+                Orientation = Orientation.Vertical,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
 
+            // Icon row
             var iconRow = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 
-            var baseText = new TextBlock
+            iconRow.Children.Add(new TextBlock
             {
                 Text = isUndiscovered ? "?" : node.BaseIcon,
                 FontFamily = new FontFamily("Segoe UI Emoji"),
-                FontSize = iconSize,
+                FontSize = 13,
                 Foreground = GetNodeColor(node, isCurrent),
                 VerticalAlignment = VerticalAlignment.Center
-            };
+            });
 
-            var stateText = new TextBlock
+            if (!isUndiscovered)
             {
-                Text = stateIcon,
-                FontFamily = new FontFamily("Courier New"),
-                FontSize = 9,
-                Foreground = GetStateColor(node.State),
-                VerticalAlignment = VerticalAlignment.Bottom,
-                Margin = new Thickness(1, 0, 0, 0)
-            };
+                iconRow.Children.Add(new TextBlock
+                {
+                    Text = node.State switch
+                    {
+                        LocationState.Discovered => "◈",
+                        LocationState.Visited => "◉",
+                        LocationState.Explored => "■",
+                        LocationState.Looted => "◆",
+                        _ => "□"
+                    },
+                    FontFamily = new FontFamily("Courier New"),
+                    FontSize = 8,
+                    Foreground = GetStateColor(node.State),
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Margin = new Thickness(1, 0, 0, 0)
+                });
+            }
 
-            var specialText = new TextBlock
-            {
-                Text = specialIcon,
-                FontFamily = new FontFamily("Courier New"),
-                FontSize = 9,
-                Foreground = GetSpecialColor(effectiveSpecial),
-                VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(1, 0, 0, 0)
-            };
-
-            iconRow.Children.Add(baseText);
-            if (!isUndiscovered) iconRow.Children.Add(stateText);
             if (effectiveSpecial != SpecialMarker.None &&
                 effectiveSpecial != SpecialMarker.CurrentLocation)
-                iconRow.Children.Add(specialText);
+            {
+                iconRow.Children.Add(new TextBlock
+                {
+                    Text = effectiveSpecial switch
+                    {
+                        SpecialMarker.MainQuestActive => "★",
+                        SpecialMarker.MainQuestAvailable => "☆",
+                        SpecialMarker.SideQuestActive => "◈",
+                        SpecialMarker.SideQuestAvailable => "◇",
+                        SpecialMarker.SpecialQuestActive => "✦",
+                        SpecialMarker.SpecialQuestAvailable => "✧",
+                        SpecialMarker.Unavailable => "✕",
+                        SpecialMarker.Locked => "🔒",
+                        SpecialMarker.Danger => "▲",
+                        SpecialMarker.Deadly => "💀",
+                        SpecialMarker.SafeRoom => "⌂",
+                        _ => ""
+                    },
+                    FontFamily = new FontFamily("Courier New"),
+                    FontSize = 8,
+                    Foreground = GetSpecialColor(effectiveSpecial),
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Margin = new Thickness(1, 0, 0, 0)
+                });
+            }
 
-            var nameText = new TextBlock
+            content.Children.Add(iconRow);
+
+            // Name
+            content.Children.Add(new TextBlock
             {
                 Text = isUndiscovered ? "???" : node.Name,
                 FontFamily = new FontFamily("Courier New"),
-                FontSize = 8,
+                FontSize = 7,
                 Foreground = isUndiscovered
                     ? new SolidColorBrush(Color.FromRgb(0x3a, 0x4a, 0x3a))
-                    : new SolidColorBrush(Color.FromRgb(0x6a, 0x8a, 0x6a)),
+                    : new SolidColorBrush(Color.FromRgb(0x8a, 0xaa, 0x8a)),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 2, 0, 0)
-            };
+                TextWrapping = TextWrapping.Wrap,
+                MaxWidth = NodeBoxWidth - 8
+            });
 
-            if (isTravelling)
+            box.Child = content;
+
+            Canvas.SetLeft(box, node.X);
+            Canvas.SetTop(box, node.Y);
+            MapCanvas.Children.Add(box);
+        }
+
+        // ── Random layout ─────────────────────────
+
+        public static void GenerateLayout(List<MapNode> nodes,
+            double mapWidth = 280, double mapHeight = 300,
+            int seed = -1)
+        {
+            var random = seed >= 0
+                ? new Random(seed) : new Random();
+
+            int padding = 20;
+
+            for (int i = 0; i < nodes.Count; i++)
             {
-                var travelLabel = new TextBlock
-                {
-                    Text = "...",
-                    FontFamily = new FontFamily("Courier New"),
-                    FontSize = 8,
-                    Foreground = new SolidColorBrush(
-                        Color.FromRgb(0x7a, 0xaa, 0x60)),
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-                container.Children.Add(travelLabel);
-            }
+                // South (index 0) → bottom (high Y)
+                // North (last) → top (low Y)
+                double yMin = padding;
+                double yMax = mapHeight - NodeBoxHeight - padding;
+                double yRange = yMax - yMin;
 
-            if (isCurrent)
-            {
-                var highlight = new Border
-                {
-                    BorderBrush = new SolidColorBrush(
-                        Color.FromRgb(0x7a, 0xaa, 0x60)),
-                    BorderThickness = new Thickness(1),
-                    Padding = new Thickness(3),
-                    Child = iconRow
-                };
-                container.Children.Add(highlight);
-            }
-            else
-            {
-                container.Children.Add(iconRow);
-            }
+                double yFraction = nodes.Count > 1
+                    ? 1.0 - (i / (double)(nodes.Count - 1))
+                    : 0.5;
 
-            container.Children.Add(nameText);
+                double yZoneCenter = yMin + yFraction * yRange;
+                double yVariance = Math.Min(20, yRange / nodes.Count * 0.3);
+                nodes[i].Y = yZoneCenter +
+                    (random.NextDouble() - 0.5) * yVariance;
+                nodes[i].Y = Math.Max(yMin,
+                    Math.Min(yMax, nodes[i].Y));
 
-            Canvas.SetLeft(container, node.X);
-            Canvas.SetTop(container, node.Y);
-            MapCanvas.Children.Add(container);
+                double xMin = padding;
+                double xMax = mapWidth - NodeBoxWidth - padding;
+                nodes[i].X = xMin + random.NextDouble() * (xMax - xMin);
+            }
         }
 
         // ── Tab management ───────────────────────
@@ -392,21 +595,23 @@ namespace LostInAForgottenCity.Controls
                 var tabTitle = new TextBlock
                 {
                     Text = tab.Type == MapType.Region
-                       ? $"▦ {tab.Title.ToUpper()}"
-                       : $"◎ {tab.Title}",
+                        ? $"▦ {tab.Title.ToUpper()}"
+                        : $"◎ {tab.Title}",
                     FontFamily = new FontFamily("Courier New"),
                     FontSize = 9,
                     Foreground = tab == _activeTab
-                        ? new SolidColorBrush(Color.FromRgb(0x7a, 0xaa, 0x60))
+                        ? new SolidColorBrush(
+                            Color.FromRgb(0x7a, 0xaa, 0x60))
                         : tab.Type == MapType.Region
-                            ? new SolidColorBrush(Color.FromRgb(0x4a, 0x8a, 0x4a))
-                            : new SolidColorBrush(Color.FromRgb(0x4a, 0x6a, 0x8a)),
+                            ? new SolidColorBrush(
+                                Color.FromRgb(0x4a, 0x8a, 0x4a))
+                            : new SolidColorBrush(
+                                Color.FromRgb(0x4a, 0x6a, 0x8a)),
                     VerticalAlignment = VerticalAlignment.Center
                 };
 
                 tabContent.Children.Add(tabTitle);
 
-                // Close button — only if not current map
                 if (!tab.IsCurrentMap)
                 {
                     var closeBtn = new TextBlock
@@ -427,7 +632,6 @@ namespace LostInAForgottenCity.Controls
                 tabBtn.Content = tabContent;
                 tabBtn.Click += TabBtn_Click;
 
-                // Highlight active tab
                 if (tab == _activeTab)
                     tabBtn.BorderBrush = new SolidColorBrush(
                         Color.FromRgb(0x7a, 0xaa, 0x60));
@@ -440,7 +644,8 @@ namespace LostInAForgottenCity.Controls
         {
             if (sender is Button btn && btn.Tag is string tabId)
             {
-                var tab = _openTabs.FirstOrDefault(t => t.Id == tabId);
+                var tab = _openTabs.FirstOrDefault(
+                    t => t.Id == tabId);
                 if (tab != null)
                 {
                     _activeTab = tab;
@@ -451,12 +656,14 @@ namespace LostInAForgottenCity.Controls
             }
         }
 
-        private void CloseTab_Click(object sender, MouseButtonEventArgs e)
+        private void CloseTab_Click(object sender,
+            MouseButtonEventArgs e)
         {
             e.Handled = true;
             if (sender is TextBlock tb && tb.Tag is string tabId)
             {
-                var tab = _openTabs.FirstOrDefault(t => t.Id == tabId);
+                var tab = _openTabs.FirstOrDefault(
+                    t => t.Id == tabId);
                 if (tab != null && !tab.IsCurrentMap)
                 {
                     _openTabs.Remove(tab);
@@ -468,7 +675,8 @@ namespace LostInAForgottenCity.Controls
             }
         }
 
-        private void OpenMapsBtn_Click(object sender, RoutedEventArgs e)
+        private void OpenMapsBtn_Click(object sender,
+            RoutedEventArgs e)
         {
             if (MapsPopup.Visibility == Visibility.Visible)
             {
@@ -476,11 +684,11 @@ namespace LostInAForgottenCity.Controls
                 return;
             }
 
-            // Build available maps list
             AvailableMapsPanel.Children.Clear();
 
             var available = _availableTabs
-                .Where(t => t.IsUnlocked && !_openTabs.Any(o => o.Id == t.Id))
+                .Where(t => t.IsUnlocked &&
+                    !_openTabs.Any(o => o.Id == t.Id))
                 .ToList();
 
             if (!available.Any())
@@ -504,7 +712,7 @@ namespace LostInAForgottenCity.Controls
                         Style = (Style)FindResource("LegendButton"),
                         Tag = tab.Id,
                         Margin = new Thickness(0, 2, 0, 2),
-                        IsEnabled = _openTabs.Count < MaxTabs
+                        IsEnabled = _openTabs.Count < 5
                     };
                     btn.Click += AvailableMapBtn_Click;
                     AvailableMapsPanel.Children.Add(btn);
@@ -514,12 +722,14 @@ namespace LostInAForgottenCity.Controls
             MapsPopup.Visibility = Visibility.Visible;
         }
 
-        private void AvailableMapBtn_Click(object sender, RoutedEventArgs e)
+        private void AvailableMapBtn_Click(object sender,
+            RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is string tabId)
             {
-                var tab = _availableTabs.FirstOrDefault(t => t.Id == tabId);
-                if (tab != null && _openTabs.Count < MaxTabs)
+                var tab = _availableTabs.FirstOrDefault(
+                    t => t.Id == tabId);
+                if (tab != null && _openTabs.Count < 5)
                 {
                     _openTabs.Add(tab);
                     _activeTab = tab;
@@ -530,9 +740,66 @@ namespace LostInAForgottenCity.Controls
             }
         }
 
+        // Set border entry for a tab
+        public void SetBorderEntry(string tabId,
+            string direction, double positionRatio,
+            string nearestLandmarkId,
+            bool isPlayerHere = false)
+        {
+            var tab = _openTabs.FirstOrDefault(t => t.Id == tabId)
+                ?? _availableTabs.FirstOrDefault(t => t.Id == tabId);
+            if (tab == null) return;
+
+            tab.BorderEntries.Clear();
+            tab.BorderEntries.Add(new BorderEntry
+            {
+                Direction = direction,
+                PositionRatio = positionRatio,
+                ConnectsToId = nearestLandmarkId,
+                IsPlayerHere = isPlayerHere
+            });
+
+            if (_activeTab?.Id == tabId) DrawMap();
+        }
+
+        // Find nearest landmark to a border direction
+        public string FindNearestLandmark(string tabId,
+            string direction)
+        {
+            var tab = _openTabs.FirstOrDefault(t => t.Id == tabId)
+                ?? _availableTabs.FirstOrDefault(t => t.Id == tabId);
+            if (tab == null || !tab.Nodes.Any()) return "";
+
+            double cw = 280, ch = 300;
+            double bx = direction switch
+            {
+                "W" => 0,
+                "E" => cw,
+                _ => cw / 2
+            };
+            double by = direction switch
+            {
+                "S" => ch,
+                "N" => 0,
+                _ => ch / 2
+            };
+
+            return tab.Nodes
+                .OrderBy(n =>
+                {
+                    double cx = n.X + NodeBoxWidth / 2;
+                    double cy = n.Y + NodeBoxHeight / 2;
+                    double dx = cx - bx;
+                    double dy = cy - by;
+                    return Math.Sqrt(dx * dx + dy * dy);
+                })
+                .First().Id;
+        }
+
         // ── Legend ───────────────────────────────
 
-        private void LegendToggleBtn_Click(object sender, RoutedEventArgs e)
+        private void LegendToggleBtn_Click(object sender,
+            RoutedEventArgs e)
         {
             _legendExpanded = !_legendExpanded;
             LegendContent.Visibility = _legendExpanded
@@ -569,10 +836,12 @@ namespace LostInAForgottenCity.Controls
             double padding = 50;
             double maxX = padding;
             double maxY = padding;
-            double minX = -(Math.Max(0, MapCanvas.Width * MapScale.ScaleX
-                           - border.ActualWidth) + padding);
-            double minY = -(Math.Max(0, MapCanvas.Height * MapScale.ScaleY
-                           - border.ActualHeight) + padding);
+            double minX = -(Math.Max(0,
+                MapCanvas.Width * MapScale.ScaleX
+                - border.ActualWidth) + padding);
+            double minY = -(Math.Max(0,
+                MapCanvas.Height * MapScale.ScaleY
+                - border.ActualHeight) + padding);
 
             MapTranslate.X = Math.Max(minX, Math.Min(maxX, newX));
             MapTranslate.Y = Math.Max(minY, Math.Min(maxY, newY));
@@ -610,14 +879,19 @@ namespace LostInAForgottenCity.Controls
         private Brush GetNodeColor(MapNode node, bool isCurrent)
         {
             if (isCurrent)
-                return new SolidColorBrush(Color.FromRgb(0x7a, 0xaa, 0x60));
+                return new SolidColorBrush(
+                    Color.FromRgb(0x7a, 0xaa, 0x60));
             if (node.Type == LocationType.Bridge)
-                return new SolidColorBrush(Color.FromRgb(0x8a, 0x7a, 0x60));
+                return new SolidColorBrush(
+                    Color.FromRgb(0x8a, 0x7a, 0x60));
             if (node.Type == LocationType.ExpeditionPoint)
-                return new SolidColorBrush(Color.FromRgb(0x60, 0x8a, 0xaa));
+                return new SolidColorBrush(
+                    Color.FromRgb(0x60, 0x8a, 0xaa));
             if (node.State == LocationState.Undiscovered)
-                return new SolidColorBrush(Color.FromRgb(0x3a, 0x4a, 0x3a));
-            return new SolidColorBrush(Color.FromRgb(0xc8, 0xc8, 0xb0));
+                return new SolidColorBrush(
+                    Color.FromRgb(0x3a, 0x4a, 0x3a));
+            return new SolidColorBrush(
+                Color.FromRgb(0xc8, 0xc8, 0xb0));
         }
 
         private Brush GetStateColor(LocationState state)
@@ -634,7 +908,8 @@ namespace LostInAForgottenCity.Controls
                     Color.FromRgb(0xc8, 0xc8, 0x60)),
                 LocationState.Looted => new SolidColorBrush(
                     Color.FromRgb(0xc8, 0xa8, 0x40)),
-                _ => new SolidColorBrush(Color.FromRgb(0x6a, 0x8a, 0x6a))
+                _ => new SolidColorBrush(
+                    Color.FromRgb(0x6a, 0x8a, 0x6a))
             };
         }
 
@@ -642,30 +917,97 @@ namespace LostInAForgottenCity.Controls
         {
             return special switch
             {
-                SpecialMarker.MainQuestActive => new SolidColorBrush(
-                    Color.FromRgb(0xff, 0xcc, 0x00)),
-                SpecialMarker.MainQuestAvailable => new SolidColorBrush(
-                    Color.FromRgb(0xc8, 0xa8, 0x40)),
-                SpecialMarker.SideQuestActive => new SolidColorBrush(
-                    Color.FromRgb(0x60, 0xc8, 0xc8)),
-                SpecialMarker.SideQuestAvailable => new SolidColorBrush(
-                    Color.FromRgb(0x40, 0x8a, 0x8a)),
-                SpecialMarker.SpecialQuestActive => new SolidColorBrush(
-                    Color.FromRgb(0xc8, 0x60, 0xc8)),
-                SpecialMarker.SpecialQuestAvailable => new SolidColorBrush(
-                    Color.FromRgb(0x8a, 0x40, 0x8a)),
-                SpecialMarker.Unavailable => new SolidColorBrush(
-                    Color.FromRgb(0x8a, 0x8a, 0x8a)),
-                SpecialMarker.Locked => new SolidColorBrush(
-                    Color.FromRgb(0xc8, 0xc8, 0x40)),
-                SpecialMarker.Danger => new SolidColorBrush(
-                    Color.FromRgb(0xc8, 0x78, 0x40)),
-                SpecialMarker.Deadly => new SolidColorBrush(
-                    Color.FromRgb(0xcc, 0x40, 0x40)),
-                SpecialMarker.SafeRoom => new SolidColorBrush(
-                    Color.FromRgb(0x60, 0xa8, 0xd0)),
+                SpecialMarker.MainQuestActive => new SolidColorBrush(Color.FromRgb(0xff, 0xcc, 0x00)),
+                SpecialMarker.MainQuestAvailable => new SolidColorBrush(Color.FromRgb(0xc8, 0xa8, 0x40)),
+                SpecialMarker.SideQuestActive => new SolidColorBrush(Color.FromRgb(0x60, 0xc8, 0xc8)),
+                SpecialMarker.SideQuestAvailable => new SolidColorBrush(Color.FromRgb(0x40, 0x8a, 0x8a)),
+                SpecialMarker.SpecialQuestActive => new SolidColorBrush(Color.FromRgb(0xc8, 0x60, 0xc8)),
+                SpecialMarker.SpecialQuestAvailable => new SolidColorBrush(Color.FromRgb(0x8a, 0x40, 0x8a)),
+                SpecialMarker.Unavailable => new SolidColorBrush(Color.FromRgb(0x8a, 0x8a, 0x8a)),
+                SpecialMarker.Locked => new SolidColorBrush(Color.FromRgb(0xc8, 0xc8, 0x40)),
+                SpecialMarker.Danger => new SolidColorBrush(Color.FromRgb(0xc8, 0x78, 0x40)),
+                SpecialMarker.Deadly => new SolidColorBrush(Color.FromRgb(0xcc, 0x40, 0x40)),
+                SpecialMarker.SafeRoom => new SolidColorBrush(Color.FromRgb(0x60, 0xa8, 0xd0)),
                 _ => new SolidColorBrush(Color.FromRgb(0xc8, 0xc8, 0xb0))
             };
         }
+        public MapTab? GetAvailableTab(string tabId)
+        {
+            return _availableTabs.FirstOrDefault(t => t.Id == tabId)
+                ?? _openTabs.FirstOrDefault(t => t.Id == tabId);
+        }
+
+        public void SwitchToTab(string tabId)
+        {
+            // Check if already open
+            var existing = _openTabs.FirstOrDefault(
+                t => t.Id == tabId);
+            if (existing != null)
+            {
+                _activeTab = existing;
+                RefreshTabs();
+                DrawMap();
+                return;
+            }
+
+            // Add from available
+            var available = _availableTabs.FirstOrDefault(
+                t => t.Id == tabId);
+            if (available != null && _openTabs.Count < 5)
+            {
+                _openTabs.Add(available);
+                _activeTab = available;
+                RefreshTabs();
+                DrawMap();
+            }
+        }
+
+        // ── Node box dimensions ───────────────────────
+        private const double NodeBoxWidth = 70;
+        private const double NodeBoxHeight = 46;
+
+        // ── Get box center ────────────────────────────
+        private static Point GetBoxCenter(MapNode node) =>
+            new(node.X + NodeBoxWidth / 2, node.Y + NodeBoxHeight / 2);
+
+        // ── Get point where line from (targetX,targetY) 
+        //    intersects box edge ─────────────────────────
+        private static Point GetBoxEdgePoint(MapNode node,
+            double targetX, double targetY)
+        {
+            double cx = node.X + NodeBoxWidth / 2;
+            double cy = node.Y + NodeBoxHeight / 2;
+            double hw = NodeBoxWidth / 2;
+            double hh = NodeBoxHeight / 2;
+
+            double dx = targetX - cx;
+            double dy = targetY - cy;
+
+            if (Math.Abs(dx) < 0.001 && Math.Abs(dy) < 0.001)
+                return new Point(cx, cy);
+
+            // Which edge does the line exit through?
+            if (Math.Abs(dx) * hh >= Math.Abs(dy) * hw)
+            {
+                // Left or right edge
+                double sign = dx > 0 ? 1 : -1;
+                double x = cx + sign * hw;
+                double y = cy + (Math.Abs(dx) > 0.001
+                    ? dy * hw / Math.Abs(dx) : 0);
+                y = Math.Max(cy - hh, Math.Min(cy + hh, y));
+                return new Point(x, y);
+            }
+            else
+            {
+                // Top or bottom edge
+                double sign = dy > 0 ? 1 : -1;
+                double y = cy + sign * hh;
+                double x = cx + (Math.Abs(dy) > 0.001
+                    ? dx * hh / Math.Abs(dy) : 0);
+                x = Math.Max(cx - hw, Math.Min(cx + hw, x));
+                return new Point(x, y);
+            }
+        }
+
     }
 }
