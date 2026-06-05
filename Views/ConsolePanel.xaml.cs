@@ -142,8 +142,16 @@ namespace LostInAForgottenCity.Views
 
         public void ClearConsole()
         {
+            _typewriterTimer.Stop();
+            _pendingText = "";
+            _charIndex = 0;
+            _currentTextBlock = null;
+            _onTypewriterComplete = null;
+            OptionsPanel.Children.Clear();
+            OptionsPanel.Visibility = Visibility.Collapsed;
+            QtePanel.Visibility = Visibility.Collapsed;
             TextPanel.Children.Clear();
-            ClearOptions();
+            _bootTextBlock = null;
         }
 
         // ── Skip typewriter on click ─────────────

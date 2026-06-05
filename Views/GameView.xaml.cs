@@ -36,7 +36,6 @@ namespace LostInAForgottenCity.Views
             UpdateStats();
             UpdateTime();
             UpdateInventory();
-            LoadTestConsole();
         }
 
         // ── Stat updates ─────────────────────────
@@ -56,7 +55,7 @@ namespace LostInAForgottenCity.Views
             PlayerHpBar.MaxSegments = p.MaxHP;
             PlayerStaminaSleepBar.Value = p.Stamina;
             PlayerStaminaSleepBar.MaxSegments = p.MaxStamina;
-            PlayerStaminaSleepBar.SleepValue = p.Sleep;
+            PlayerStaminaSleepBar.SleepValue = (int)p.Sleep;
             PlayerStaminaSleepBar.IsSleepVisible = !p.IsSunnyDay;
         }
 
@@ -411,196 +410,233 @@ namespace LostInAForgottenCity.Views
 
             // ── Build Unknown region map ──────────────
             var regionNodes = new List<Controls.MapNode>
-    {
-        // South (index 0)
-        new() {
-            Id = "mountain_edge",
-            Name = "Mountain Edge",
-            BaseIcon = "⛰",
-            State = Controls.LocationState.Visited,
-            Special = Controls.SpecialMarker.CurrentLocation,
-            Type = Controls.LocationType.Normal
-        },
-        // Middle (index 1)
-        new() {
-            Id = "random_ruins",
-            Name = "Random Ruins",
-            BaseIcon = "🏚",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        // North (index 2)
-        new() {
-            Id = "extravagant_palace",
-            Name = "Extravagant Palace",
-            BaseIcon = "🏛",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        }
-    };
-
-            // Generate random layout (south→north)
-            Controls.MapPanel.GenerateLayout(regionNodes, 280, 300);
+            {
+                // South (index 0)
+                new() {
+                    Id = "mountain_edge",
+                    Name = "Mountain Edge",
+                    BaseIcon = "⛰",
+                    State = Controls.LocationState.Visited,
+                    Special = Controls.SpecialMarker.CurrentLocation,
+                    Type = Controls.LocationType.Normal
+                },
+                // Middle (index 1)
+                new() {
+                    Id = "random_ruins",
+                    Name = "Random Ruins",
+                    BaseIcon = "🏚",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                // North (index 2)
+                new() {
+                    Id = "extravagant_palace",
+                    Name = "Extravagant Palace",
+                    BaseIcon = "🏛",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                }
+            };
 
             var regionConnections = new List<Controls.MapConnection>
-    {
-        new() {
-            FromId = "mountain_edge",
-            ToId = "random_ruins"
-        },
-        new() {
-            FromId = "random_ruins",
-            ToId = "extravagant_palace"
-        }
-    };
+            {
+                new() {
+                    FromId = "mountain_edge",
+                    ToId = "random_ruins",
+                    Distance = Controls.TravelDistance.Close
+                },
+                new() {
+                    FromId = "random_ruins",
+                    ToId = "extravagant_palace",
+                    Distance = Controls.TravelDistance.Near
+                }
+            };
+
+            // Pass connections to layout so spacing reflects distance
+            Controls.MapPanel.GenerateLayout(regionNodes, regionConnections, 280, 300);
 
             // ── Build location maps ───────────────────
 
             // Mountain Edge landmarks
             var mountainEdgeNodes = new List<Controls.MapNode>
-    {
-        new() {
-            Id = "me_parking_lot",
-            Name = "Parking Lot",
-            BaseIcon = "🅿",
-            State = Controls.LocationState.Visited,
-            Special = Controls.SpecialMarker.CurrentLocation,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "me_empty_booth",
-            Name = "Empty Booth",
-            BaseIcon = "🏠",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "me_cluster_signs",
-            Name = "Cluster of Signs",
-            BaseIcon = "🪧",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        }
-    };
-            Controls.MapPanel.GenerateLayout(
-                mountainEdgeNodes, 280, 300);
+            {
+                new() {
+                    Id = "me_parking_lot",
+                    Name = "Parking Lot",
+                    BaseIcon = "🅿",
+                    State = Controls.LocationState.Visited,
+                    Special = Controls.SpecialMarker.CurrentLocation,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "me_empty_booth",
+                    Name = "Empty Booth",
+                    BaseIcon = "🏠",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "me_cluster_signs",
+                    Name = "Cluster of Signs",
+                    BaseIcon = "🪧",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                }
+            };
 
             var mountainEdgeConnections = new List<Controls.MapConnection>
-    {
-        new() { FromId = "me_parking_lot",
-                ToId = "me_empty_booth" },
-        new() { FromId = "me_empty_booth",
-                ToId = "me_cluster_signs" }
-    };
+            {
+                new() {
+                    FromId = "me_parking_lot",
+                    ToId = "me_empty_booth",
+                    Distance = Controls.TravelDistance.Close
+                },
+                new() {
+                    FromId = "me_empty_booth",
+                    ToId = "me_cluster_signs",
+                    Distance = Controls.TravelDistance.Far
+                }
+            };
+
+            Controls.MapPanel.GenerateLayout(mountainEdgeNodes, mountainEdgeConnections, 280, 300);
 
             // Random Ruins landmarks
             var ruinsNodes = new List<Controls.MapNode>
-    {
-        new() {
-            Id = "rr_intact_house",
-            Name = "Intact House",
-            BaseIcon = "🏠",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "rr_damaged_store",
-            Name = "Damaged Store",
-            BaseIcon = "🏪",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "rr_warehouse",
-            Name = "Warehouse",
-            BaseIcon = "🏭",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "rr_tower",
-            Name = "Half Collapsed Tower",
-            BaseIcon = "🗼",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        }
-    };
-            Controls.MapPanel.GenerateLayout(ruinsNodes, 280, 300);
+            {
+                new() {
+                    Id = "rr_intact_house",
+                    Name = "Intact House",
+                    BaseIcon = "🏠",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "rr_damaged_store",
+                    Name = "Damaged Store",
+                    BaseIcon = "🏪",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "rr_warehouse",
+                    Name = "Warehouse",
+                    BaseIcon = "🏭",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "rr_tower",
+                    Name = "Half Collapsed Tower",
+                    BaseIcon = "🗼",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                }
+            };
 
             var ruinsConnections = new List<Controls.MapConnection>
-    {
-        new() { FromId = "rr_intact_house",
-                ToId = "rr_damaged_store" },
-        new() { FromId = "rr_damaged_store",
-                ToId = "rr_warehouse" },
-        new() { FromId = "rr_warehouse",
-                ToId = "rr_tower" },
-        new() { FromId = "rr_intact_house",
-                ToId = "rr_tower" }
-    };
+            {
+                new() {
+                    FromId = "rr_intact_house",
+                    ToId = "rr_damaged_store",
+                    Distance = Controls.TravelDistance.Close
+                },
+                new() {
+                    FromId = "rr_damaged_store",
+                    ToId = "rr_warehouse",
+                    Distance = Controls.TravelDistance.Near
+                },
+                new() {
+                    FromId = "rr_warehouse",
+                    ToId = "rr_tower",
+                    Distance = Controls.TravelDistance.Far
+                },
+                new() {
+                    FromId = "rr_intact_house",
+                    ToId = "rr_tower",
+                    Distance = Controls.TravelDistance.Distant
+                }
+            };
+
+            Controls.MapPanel.GenerateLayout(ruinsNodes, ruinsConnections, 280, 300);
 
             // Extravagant Palace landmarks
             var palaceNodes = new List<Controls.MapNode>
-    {
-        new() {
-            Id = "ep_main_hall",
-            Name = "Main Hall",
-            BaseIcon = "🏛",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "ep_basement",
-            Name = "Basement",
-            BaseIcon = "⬛",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "ep_storage",
-            Name = "Storage Room",
-            BaseIcon = "📦",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "ep_kitchen",
-            Name = "Kitchen",
-            BaseIcon = "🍳",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "ep_bedroom",
-            Name = "Bedroom",
-            BaseIcon = "🛏",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal
-        },
-        new() {
-            Id = "ep_sturdy_room",
-            Name = "Sturdy Room",
-            BaseIcon = "⌂",
-            State = Controls.LocationState.Undiscovered,
-            Type = Controls.LocationType.Normal,
-            HasDiscoveredSafeRoom = false
-        }
-    };
-            Controls.MapPanel.GenerateLayout(palaceNodes, 280, 300);
+            {
+                new() {
+                    Id = "ep_main_hall",
+                    Name = "Main Hall",
+                    BaseIcon = "🏛",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "ep_basement",
+                    Name = "Basement",
+                    BaseIcon = "⬛",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "ep_storage",
+                    Name = "Storage Room",
+                    BaseIcon = "📦",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "ep_kitchen",
+                    Name = "Kitchen",
+                    BaseIcon = "🍳",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "ep_bedroom",
+                    Name = "Bedroom",
+                    BaseIcon = "🛏",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal
+                },
+                new() {
+                    Id = "ep_sturdy_room",
+                    Name = "Sturdy Room",
+                    BaseIcon = "⌂",
+                    State = Controls.LocationState.Undiscovered,
+                    Type = Controls.LocationType.Normal,
+                    HasDiscoveredSafeRoom = false
+                }
+            };
 
             var palaceConnections = new List<Controls.MapConnection>
-    {
-        new() { FromId = "ep_main_hall",
-                ToId = "ep_basement" },
-        new() { FromId = "ep_main_hall",
-                ToId = "ep_storage" },
-        new() { FromId = "ep_storage",
-                ToId = "ep_kitchen" },
-        new() { FromId = "ep_kitchen",
-                ToId = "ep_bedroom" },
-        new() { FromId = "ep_bedroom",
-                ToId = "ep_sturdy_room" }
-    };
+            {
+                new() {
+                    FromId = "ep_main_hall",
+                    ToId = "ep_basement",
+                    Distance = Controls.TravelDistance.Immediate
+                },
+                new() {
+                    FromId = "ep_main_hall",
+                    ToId = "ep_storage",
+                    Distance = Controls.TravelDistance.Close
+                },
+                new() {
+                    FromId = "ep_storage",
+                    ToId = "ep_kitchen",
+                    Distance = Controls.TravelDistance.Close
+                },
+                new() {
+                    FromId = "ep_kitchen",
+                    ToId = "ep_bedroom",
+                    Distance = Controls.TravelDistance.Near
+                },
+                new() {
+                    FromId = "ep_bedroom",
+                    ToId = "ep_sturdy_room",
+                    Distance = Controls.TravelDistance.Immediate
+                }
+            };
+
+            Controls.MapPanel.GenerateLayout(palaceNodes, palaceConnections, 280, 300);
 
             // ── Load region map as current ────────────
             GameMap.LoadMap(regionNodes, regionConnections,
@@ -764,26 +800,91 @@ namespace LostInAForgottenCity.Views
 
                             // Movement choices — start travel animation
                             case "intro_move_parking_lot":
-                                StartTravelAnimation(
-                                    "mountain_edge", "mountain_edge",
-                                    "me_parking_lot",
-                                    () => dialogue.GoToScene(nextId, effect));
+                                ShowMovementFlow(
+                                    "Parking Lot",
+                                    "intro_move_parking_lot",
+                                    Controls.TravelDistance.Immediate,
+                                    Engine.NavigationState.OnThePath,
+                                    effect =>
+                                    {
+                                        // Apply stats
+                                        if (effect.Sleep != 0)
+                                            _state.ModifySleep(effect.Sleep);
+                                        if (effect.TimeMinutes != 0)
+                                            _state.AdvanceTime(effect.TimeMinutes);
+                                        if (effect.TimeSeconds != 0)
+                                            _state.AdvanceTimeSeconds(
+                                                effect.TimeSeconds);
+                                        if (effect.Stamina != 0)
+                                            _state.ModifyStamina(effect.Stamina);
+
+                                        // Show result gameline
+                                        GameConsole.AddText(
+                                            Engine.MovementSystem
+                                                .GetResultGameline(effect),
+                                            TextType.Gameline,
+                                            onComplete: () =>
+                                                _activeTutorialDialogue?
+                                                    .GoToScene("intro_move_parking_lot"));
+                                    });
                                 break;
 
                             case "intro_move_booth":
-                                StartTravelAnimation(
-                                    "mountain_edge", "mountain_edge",
-                                    "me_empty_booth",
-                                    () => dialogue.GoToScene(nextId, effect));
+                                ShowMovementFlow(
+                                    "Empty Booth",
+                                    "intro_move_booth",
+                                    Controls.TravelDistance.Close,
+                                    Engine.NavigationState.OnThePath,
+                                    effect =>
+                                    {
+                                        if (effect.Sleep != 0)
+                                            _state.ModifySleep(effect.Sleep);
+                                        if (effect.TimeMinutes != 0)
+                                            _state.AdvanceTime(effect.TimeMinutes);
+                                        if (effect.TimeSeconds != 0)
+                                            _state.AdvanceTimeSeconds(
+                                                effect.TimeSeconds);
+                                        if (effect.Stamina != 0)
+                                            _state.ModifyStamina(effect.Stamina);
+
+                                        GameConsole.AddText(
+                                            Engine.MovementSystem
+                                                .GetResultGameline(effect),
+                                            TextType.Gameline,
+                                            onComplete: () =>
+                                                _activeTutorialDialogue?
+                                                    .GoToScene("intro_move_booth"));
+                                    });
                                 break;
 
                             case "intro_move_signs":
-                                StartTravelAnimation(
-                                    "mountain_edge", "mountain_edge",
-                                    "me_cluster_signs",
-                                    () => dialogue.GoToScene(nextId, effect));
-                                break;
+                                ShowMovementFlow(
+                                    "Cluster of Signs",
+                                    "intro_move_signs",
+                                    Controls.TravelDistance.Far,
+                                    Engine.NavigationState.OnThePath,
+                                    effect =>
+                                    {
+                                        if (effect.Sleep != 0)
+                                            _state.ModifySleep(effect.Sleep);
+                                        if (effect.TimeMinutes != 0)
+                                            _state.AdvanceTime(effect.TimeMinutes);
+                                        if (effect.TimeSeconds != 0)
+                                            _state.AdvanceTimeSeconds(
+                                                effect.TimeSeconds);
+                                        if (effect.Stamina != 0)
+                                            _state.ModifyStamina(effect.Stamina);
 
+                                        GameConsole.AddText(
+                                            Engine.MovementSystem
+                                                .GetResultGameline(effect),
+                                            TextType.Gameline,
+                                            onComplete: () =>
+                                                _activeTutorialDialogue?
+                                                    .GoToScene("intro_move_signs"));
+                                    });
+                                break;
+                            
                             default:
                                 dialogue.GoToScene(nextId, effect);
                                 break;
@@ -818,6 +919,70 @@ namespace LostInAForgottenCity.Views
                         TextType.Description));
 
             dialogue.StartScene(firstSceneId);
+        }
+
+        private void ShowMovementFlow(
+            string destinationName,
+            string nextSceneId,
+            Controls.TravelDistance distance,
+            Engine.NavigationState navState,
+            Action<Engine.StatEffect> onConfirm)
+        {
+            // Step 1: Movement type choice
+            GameConsole.ShowOptions(
+                new List<string>
+                {
+            "Move carefully.",
+            "Move normally.",
+            "Move quickly."
+                },
+                movIndex =>
+                {
+                    var movType = movIndex switch
+                    {
+                        0 => Engine.MovementType.Carefully,
+                        1 => Engine.MovementType.Normally,
+                        _ => Engine.MovementType.Quickly
+                    };
+
+                    var effect = Engine.MovementSystem.Calculate(
+                        navState, distance, movType);
+
+                    string confirmText = Engine.MovementSystem
+                        .GetConfirmationText(
+                            destinationName,
+                            navState,
+                            distance,
+                            movType);
+
+                    // Step 2: Show cost summary
+                    GameConsole.AddText(
+                        confirmText, TextType.Gameline,
+                        onComplete: () =>
+                        {
+                            // Step 3: Confirmation
+                            GameConsole.ShowOptions(
+                                new List<string>
+                                {
+                            "Yes.",
+                            "Let me think."
+                                },
+                                confirmIndex =>
+                                {
+                                    if (confirmIndex == 1)
+                                    {
+                                        // Back to destination choice
+                                        _activeTutorialDialogue?
+                                            .GoToScene(
+                                            "intro_mountain_edge_arrival");
+                                        return;
+                                    }
+
+                                    // Confirmed — apply effect
+                                    onConfirm(effect);
+                                });
+                        });
+                });
         }
 
         // ── Travel animation ──────────────────────────

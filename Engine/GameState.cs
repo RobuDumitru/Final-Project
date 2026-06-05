@@ -7,7 +7,7 @@ namespace LostInAForgottenCity.Engine
     {
         // Singleton
         private static GameState? _instance;
-        public static GameState Instance => 
+        public static GameState Instance =>
             _instance ??= new GameState();
 
         public GameEngine Engine { get; private set; } = new();
@@ -21,13 +21,13 @@ namespace LostInAForgottenCity.Engine
 
         private GameState() { }
 
-        public void NotifyStatsChanged() => 
+        public void NotifyStatsChanged() =>
             OnStatsChanged?.Invoke();
-        public void NotifyLocationChanged() => 
+        public void NotifyLocationChanged() =>
             OnLocationChanged?.Invoke();
-        public void NotifyInventoryChanged() => 
+        public void NotifyInventoryChanged() =>
             OnInventoryChanged?.Invoke();
-        public void NotifyTimeChanged() => 
+        public void NotifyTimeChanged() =>
             OnTimeChanged?.Invoke();
 
         // ── Stat modifiers ───────────────────────
@@ -53,11 +53,10 @@ namespace LostInAForgottenCity.Engine
             NotifyStatsChanged();
         }
 
-        public void ModifySleep(int amount)
+        public void ModifySleep(double amount)
         {
-            Player.Sleep = Math.Clamp(
-                Player.Sleep + amount, 0, 100);
-            NotifyStatsChanged();
+            Player.Sleep = Math.Max(0, Math.Min(100,Player.Sleep + amount));
+            OnStatsChanged?.Invoke();
         }
 
         public void ModifySoul(int amount)
@@ -77,10 +76,29 @@ namespace LostInAForgottenCity.Engine
         public void ModifySubconscious(int amount)
         {
             Player.Subconscious = Math.Clamp(
-                Player.Subconscious + amount, 
+                Player.Subconscious + amount,
                 0, Player.MaxSubconscious);
             NotifyStatsChanged();
         }
+
+        public void AdvanceTimeSeconds(int seconds)
+        {
+            // Convert seconds to minutes for time tracking
+            // but keep fractional minutes internally
+            _secondsAccumulator += seconds;
+            if (_secondsAccumulator >= 60)
+            {
+                int minutes = _secondsAccumulator / 60;
+                _secondsAccumulator %= 60;
+                AdvanceTime(minutes);
+            }
+            else
+            {
+                OnTimeChanged?.Invoke();
+            }
+        }
+
+        private int _secondsAccumulator = 0;
 
         public void AdvanceTime(int minutes)
         {

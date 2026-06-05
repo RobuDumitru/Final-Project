@@ -5,12 +5,13 @@ namespace LostInAForgottenCity.Engine
     public class StatEffect
     {
         public int Stamina { get; set; } = 0;
-        public int Sleep { get; set; } = 0;
+        public double Sleep { get; set; } = 0;  // double for fractions
         public double Sanity { get; set; } = 0;
         public int HP { get; set; } = 0;
         public int Soul { get; set; } = 0;
         public int Resistance { get; set; } = 0;
         public int TimeMinutes { get; set; } = 0;
+        public int TimeSeconds { get; set; } = 0; // for ON THE WAY
     }
 
     public class DialogueLine
@@ -613,25 +614,10 @@ namespace LostInAForgottenCity.Engine
                     },
                     Choices = new List<DialogueChoice>
                     {
-                        new() {
-                            Text = "Look around.",
-                            NextSceneId = "intro_look_around"
-                        },
-                        new() {
-                            Text = "Head to the Parking Lot.",
-                            NextSceneId = "intro_move_parking_lot",
-                            Effect = new StatEffect { Sleep = -2, TimeMinutes = 5 }
-                        },
-                        new() {
-                            Text = "Head to the Empty Booth.",
-                            NextSceneId = "intro_move_booth",
-                            Effect = new StatEffect { Sleep = -3, TimeMinutes = 10 }
-                        },
-                        new() {
-                            Text = "Head to the Cluster of Signs.",
-                            NextSceneId = "intro_move_signs",
-                            Effect = new StatEffect { Sleep = -5, TimeMinutes = 20 }
-                        }
+                        new() { Text = "Look around.", NextSceneId = "intro_look_around" },
+                        new() { Text = "Head to the Parking Lot.", NextSceneId = "intro_move_parking_lot" },
+                        new() { Text = "Head to the Empty Booth.", NextSceneId = "intro_move_booth" },
+                        new() { Text = "Head to the Cluster of Signs.", NextSceneId = "intro_move_signs" }
                     }
                 },
 
@@ -663,22 +649,21 @@ namespace LostInAForgottenCity.Engine
                     },
                     Choices = new List<DialogueChoice>
                     {
+                        // In intro_mountain_edge_arrival choices:
                         new() {
-                            Text = "Head to the Parking Lot. [IMMEDIATE — 5 min]",
-                            NextSceneId = "intro_move_parking_lot",
-                            Effect = new StatEffect { Sleep = -2, TimeMinutes = 5 }
+                            Text = "Head to the Parking Lot.",
+                            NextSceneId = "intro_move_parking_lot"
+                            // No Effect — handled by ShowMovementFlow
                         },
                         new() {
-                            Text = "Head to the Empty Booth. [CLOSE — 10 min]",
-                            NextSceneId = "intro_move_booth",
-                            Effect = new StatEffect { Sleep = -3, TimeMinutes = 10 }
+                            Text = "Head to the Empty Booth.",
+                            NextSceneId = "intro_move_booth"
                         },
                         new() {
-                            Text = "Head to the Cluster of Signs. [FAR — 20 min]",
-                            NextSceneId = "intro_move_signs",
-                            Effect = new StatEffect { Sleep = -5, TimeMinutes = 20 }
-                        }
-                    }
+                            Text = "Head to the Cluster of Signs.",
+                            NextSceneId = "intro_move_signs"
+                        },
+                    },
                 },
 
                 ["intro_move_parking_lot"] = new DialogueScene

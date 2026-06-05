@@ -47,10 +47,20 @@ namespace LostInAForgottenCity.Controls
         public bool HasDiscoveredSafeRoom { get; set; } = false;
     }
 
+    public enum TravelDistance
+    {
+        Immediate,
+        Close,
+        Near,
+        Far,
+        Distant
+    }
+
     public class MapConnection
     {
         public string FromId { get; set; } = "";
         public string ToId { get; set; } = "";
+        public TravelDistance Distance { get; set; } = TravelDistance.Close;
         public bool IsPlayerTravelling { get; set; } = false;
         public double TravelProgress { get; set; } = 0.0;
     }
@@ -177,25 +187,21 @@ namespace LostInAForgottenCity.Controls
         {
             if (_activeTab == null) return;
 
-            var from = _activeTab.Nodes.Find(n => n.Id == fromId);
-            var to = _activeTab.Nodes.Find(n => n.Id == toId);
-            if (from == null || to == null) return;
-
-            _travelFromId = fromId;
-            _travelToId = toId;
-            _totalSegments = CalculateSegments(from, to);
-            _currentSegment = 0;
-
-            // Mark connection as travelling
             var conn = _activeTab.Connections.FirstOrDefault(
                 c => (c.FromId == fromId && c.ToId == toId) ||
                      (c.FromId == toId && c.ToId == fromId));
-            if (conn != null)
-            {
-                conn.IsPlayerTravelling = true;
-                conn.TravelProgress = 0;
-            }
+            if (conn == null) return;
 
+            _travelFromId = fromId;
+            _travelToId = toId;
+            _totalSegments = GetTravelSegments(conn.Distance);
+            _currentSegment = 0;
+
+            conn.IsPlayerTravelling = true;
+            conn.TravelProgress = 0;
+
+            _travelTimer.Interval =
+                TimeSpan.FromMilliseconds(SegmentTravelMs);
             _travelTimer.Start();
             DrawMap();
         }
@@ -227,13 +233,88 @@ namespace LostInAForgottenCity.Controls
             }
         }
 
-        private int CalculateSegments(MapNode from, MapNode to)
+        // Travel segments for animation (how many ticks)
+        private int GetTravelSegments(TravelDistance distance)
         {
-            double dx = (to.X + 20) - (from.X + 20);
-            double dy = (to.Y + 20) - (from.Y + 20);
-            double distance = Math.Sqrt(dx * dx + dy * dy);
-            return Math.Max(2, (int)(distance / SegmentPixelLength));
+            return distance switch
+            {
+                TravelDistance.Immediate => 2,
+                TravelDistance.Close => 4,
+                TravelDistance.Near => 6,
+                TravelDistance.Far => 8,
+                TravelDistance.Distant => 12,
+                _ => 4
+            };
         }
+
+        // Visual dashes — communicates distance to player
+        private int GetVisualDashes(TravelDistance distance)
+        {
+            return distance switch
+            {
+                TravelDistance.Immediate => 3,
+                TravelDistance.Close => 5,
+                TravelDistance.Near => 7,
+                TravelDistance.Far => 10,
+                TravelDistance.Distant => 14,
+                _ => 5
+            };
+        }
+
+        // Travel time in minutes
+        public static int GetTravelMinutes(TravelDistance distance,
+            bool isLandmark = false)
+        {
+            if (isLandmark)
+            {
+                return distance switch
+                {
+                    TravelDistance.Immediate => 5,
+                    TravelDistance.Close => 10,
+                    TravelDistance.Near => 15,
+                    TravelDistance.Far => 20,
+                    TravelDistance.Distant => 25,
+                    _ => 10
+                };
+            }
+            return distance switch
+            {
+                TravelDistance.Immediate => 30,
+                TravelDistance.Close => 45,
+                TravelDistance.Near => 60,
+                TravelDistance.Far => 75,
+                TravelDistance.Distant => 90,
+                _ => 45
+            };
+        }
+
+        // Sleep cost per distance category
+        public static int GetSleepCost(TravelDistance distance,
+            bool isLandmark = false)
+        {
+            if (isLandmark)
+            {
+                return distance switch
+                {
+                    TravelDistance.Immediate => 1,
+                    TravelDistance.Close => 2,
+                    TravelDistance.Near => 3,
+                    TravelDistance.Far => 4,
+                    TravelDistance.Distant => 5,
+                    _ => 2
+                };
+            }
+            return distance switch
+            {
+                TravelDistance.Immediate => 5,
+                TravelDistance.Close => 8,
+                TravelDistance.Near => 12,
+                TravelDistance.Far => 16,
+                TravelDistance.Distant => 20,
+                _ => 8
+            };
+        }
+
 
         // ── Drawing ──────────────────────────────
 
@@ -325,7 +406,7 @@ namespace LostInAForgottenCity.Controls
             if (nearest != null)
             {
                 Point edge = GetBoxEdgePoint(nearest, ex, ey);
-                DrawDashedLine(ex, ey, edge.X, edge.Y, arrowColor);
+                DrawDashedLine(ex, ey, edge.X, edge.Y, arrowColor, 5);
             }
 
             // Player dot at border if here
@@ -338,8 +419,6 @@ namespace LostInAForgottenCity.Controls
         {
             Point center1 = GetBoxCenter(from);
             Point center2 = GetBoxCenter(to);
-
-            // Stop at box edges
             Point p1 = GetBoxEdgePoint(from, center2.X, center2.Y);
             Point p2 = GetBoxEdgePoint(to, center1.X, center1.Y);
 
@@ -351,7 +430,10 @@ namespace LostInAForgottenCity.Controls
                 ? Color.FromRgb(0x4a, 0x7a, 0x4a)
                 : Color.FromRgb(0x2a, 0x3a, 0x2a);
 
-            DrawDashedLine(p1.X, p1.Y, p2.X, p2.Y, roadColor);
+            // Use distance category for dash count
+            int dashes = GetVisualDashes(conn.Distance);
+            DrawDashedLine(p1.X, p1.Y, p2.X, p2.Y,
+                roadColor, dashes);
 
             // Travel dot
             if (conn.IsPlayerTravelling)
@@ -363,21 +445,24 @@ namespace LostInAForgottenCity.Controls
 
                 double px = p1.X + (p2.X - p1.X) * progress;
                 double py = p1.Y + (p2.Y - p1.Y) * progress;
-
                 DrawTravelDot(px, py);
             }
         }
 
         private void DrawDashedLine(double x1, double y1,
             double x2, double y2, Color color,
-            double thickness = 1.5)
+            int dashCount, double thickness = 1.5)
         {
-            int segments = CalculateSegments(x1, y1, x2, y2);
-            for (int s = 0; s < segments; s++)
+            // Distribute fixed number of dashes across the line
+            // regardless of physical length
+            double dashLength = 0.6 / dashCount;
+
+            for (int s = 0; s < dashCount; s++)
             {
-                double t1 = s / (double)segments;
-                double t2 = (s + 0.6) / (double)segments;
-                var dash = new Line
+                double t1 = s / (double)dashCount;
+                double t2 = t1 + dashLength;
+
+                MapCanvas.Children.Add(new Line
                 {
                     X1 = x1 + (x2 - x1) * t1,
                     Y1 = y1 + (y2 - y1) * t1,
@@ -385,8 +470,7 @@ namespace LostInAForgottenCity.Controls
                     Y2 = y1 + (y2 - y1) * t2,
                     Stroke = new SolidColorBrush(color),
                     StrokeThickness = thickness
-                };
-                MapCanvas.Children.Add(dash);
+                });
             }
         }
 
@@ -540,36 +624,78 @@ namespace LostInAForgottenCity.Controls
         // ── Random layout ─────────────────────────
 
         public static void GenerateLayout(List<MapNode> nodes,
-            double mapWidth = 280, double mapHeight = 300,
+            List<MapConnection> connections,
+            double mapWidth = 280,
+            double mapHeight = 300,
             int seed = -1)
         {
             var random = seed >= 0
                 ? new Random(seed) : new Random();
 
             int padding = 20;
+            double yMin = padding;
+            double yMax = mapHeight - NodeBoxHeight - padding;
+            double xMin = padding;
+            double xMax = mapWidth - NodeBoxWidth - padding;
 
+            // Place nodes south→north (index 0 = south)
             for (int i = 0; i < nodes.Count; i++)
             {
-                // South (index 0) → bottom (high Y)
-                // North (last) → top (low Y)
-                double yMin = padding;
-                double yMax = mapHeight - NodeBoxHeight - padding;
-                double yRange = yMax - yMin;
-
                 double yFraction = nodes.Count > 1
                     ? 1.0 - (i / (double)(nodes.Count - 1))
                     : 0.5;
 
-                double yZoneCenter = yMin + yFraction * yRange;
-                double yVariance = Math.Min(20, yRange / nodes.Count * 0.3);
-                nodes[i].Y = yZoneCenter +
-                    (random.NextDouble() - 0.5) * yVariance;
-                nodes[i].Y = Math.Max(yMin,
-                    Math.Min(yMax, nodes[i].Y));
+                double yCenter = yMin + yFraction * (yMax - yMin);
+                double yVariance = Math.Min(15,
+                    (yMax - yMin) / nodes.Count * 0.25);
 
-                double xMin = padding;
-                double xMax = mapWidth - NodeBoxWidth - padding;
-                nodes[i].X = xMin + random.NextDouble() * (xMax - xMin);
+                nodes[i].Y = Math.Max(yMin, Math.Min(yMax,
+                    yCenter + (random.NextDouble() - 0.5)
+                    * yVariance));
+
+                nodes[i].X = xMin +
+                    random.NextDouble() * (xMax - xMin);
+            }
+
+            // Adjust X positions based on distance category
+            // to give visual hint of distance
+            foreach (var conn in connections)
+            {
+                var from = nodes.FirstOrDefault(
+                    n => n.Id == conn.FromId);
+                var to = nodes.FirstOrDefault(
+                    n => n.Id == conn.ToId);
+                if (from == null || to == null) continue;
+
+                // Target pixel separation based on distance
+                double targetDist = conn.Distance switch
+                {
+                    TravelDistance.Immediate => 80,
+                    TravelDistance.Close => 110,
+                    TravelDistance.Near => 140,
+                    TravelDistance.Far => 175,
+                    TravelDistance.Distant => 210,
+                    _ => 110
+                };
+
+                double cx1 = from.X + NodeBoxWidth / 2;
+                double cy1 = from.Y + NodeBoxHeight / 2;
+                double cx2 = to.X + NodeBoxWidth / 2;
+                double cy2 = to.Y + NodeBoxHeight / 2;
+
+                double current = Math.Sqrt(
+                    (cx2 - cx1) * (cx2 - cx1) +
+                    (cy2 - cy1) * (cy2 - cy1));
+
+                // If too close, push nodes apart horizontally
+                if (current < targetDist * 0.6)
+                {
+                    double push = (targetDist * 0.6 - current) / 2;
+                    from.X = Math.Max(xMin, Math.Min(
+                        xMax, from.X - push));
+                    to.X = Math.Max(xMin, Math.Min(
+                        xMax, to.X + push));
+                }
             }
         }
 

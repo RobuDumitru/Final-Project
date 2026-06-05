@@ -27,7 +27,7 @@ namespace LostInAForgottenCity.Models
         public int MaxHP { get; set; } = 10;
         public int Stamina { get; set; } = 5;
         public int MaxStamina { get; set; } = 5;
-        public int Sleep { get; set; } = 100;
+        public double Sleep { get; set; } = 100;
 
         // ── TIME ────────────────────────────────
         public int Day { get; set; } = 1;
