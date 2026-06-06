@@ -103,7 +103,7 @@ namespace LostInAForgottenCity.Controls
         private string _travelToId = "";
         private int _totalSegments = 0;
         private int _currentSegment = 0;
-        public event Action? OnTravelComplete;
+        public Action? OnTravelComplete { get; set; }
         public bool IsTravelling => _travelTimer.IsEnabled;
 
         // Drag
@@ -619,6 +619,25 @@ namespace LostInAForgottenCity.Controls
             Canvas.SetLeft(box, node.X);
             Canvas.SetTop(box, node.Y);
             MapCanvas.Children.Add(box);
+        }
+
+        public void UpdateNodeState(string tabId, string nodeId,
+            LocationState newState,
+            SpecialMarker special = SpecialMarker.None)
+        {
+            var tab = _openTabs.FirstOrDefault(t => t.Id == tabId)
+                ?? _availableTabs.FirstOrDefault(t => t.Id == tabId);
+            if (tab == null) return;
+
+            var node = tab.Nodes.FirstOrDefault(n => n.Id == nodeId);
+            if (node == null) return;
+
+            node.State = newState;
+            if (special != SpecialMarker.None)
+                node.Special = special;
+
+            if (_activeTab?.Id == tabId)
+                DrawMap();
         }
 
         // ── Random layout ─────────────────────────

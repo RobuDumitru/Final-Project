@@ -14,6 +14,7 @@ namespace LostInAForgottenCity.Views
         // ── Fields ───────────────────────────────
         private GameState _state = GameState.Instance;
         private DialogueEngine? _activeTutorialDialogue;
+        private bool _hasLookedAround = false;
         private DispatcherTimer _configuringTimer = new();
         private int _configuringDots = 0;
         private const int MaxConfiguringDots = 5;
@@ -494,6 +495,11 @@ namespace LostInAForgottenCity.Views
                 new() {
                     FromId = "me_empty_booth",
                     ToId = "me_cluster_signs",
+                    Distance = Controls.TravelDistance.Near
+                },
+                new() {
+                    FromId = "me_parking_lot",
+                    ToId = "me_cluster_signs",
                     Distance = Controls.TravelDistance.Far
                 }
             };
@@ -824,8 +830,23 @@ namespace LostInAForgottenCity.Views
                                                 .GetResultGameline(effect),
                                             TextType.Gameline,
                                             onComplete: () =>
+                                            {
+                                                // Show travel message + animate map
+                                                GameConsole.AddText(
+                                                    "Traveling . . . . . .",
+                                                    TextType.Description);
+
+                                                // Start map travel animation
+                                                GameMap.SwitchToTab("mountain_edge_map");
+                                                GameMap.StartTravel(
+                                                    "me_parking_lot",
+                                                    "me_parking_lot");
+
+                                                // Since parking lot IS current location
+                                                // travel is immediate — go directly
                                                 _activeTutorialDialogue?
-                                                    .GoToScene("intro_move_parking_lot"));
+                                                    .GoToScene("intro_move_parking_lot");
+                                            });
                                     });
                                 break;
 
@@ -852,8 +873,33 @@ namespace LostInAForgottenCity.Views
                                                 .GetResultGameline(effect),
                                             TextType.Gameline,
                                             onComplete: () =>
-                                                _activeTutorialDialogue?
-                                                    .GoToScene("intro_move_booth"));
+                                            {
+                                                GameConsole.AddText(
+                                                    "Traveling . . . . . .",
+                                                    TextType.Description);
+
+                                                GameMap.SwitchToTab("mountain_edge_map");
+                                                GameMap.StartTravel(
+                                                    "me_parking_lot",
+                                                    "me_empty_booth");
+
+                                                GameMap.OnTravelComplete = () =>
+                                                {
+                                                    GameMap.OnTravelComplete = null;
+                                                    GameMap.UpdateNodeState(
+                                                        "mountain_edge_map",
+                                                        "me_empty_booth",
+                                                        Controls.LocationState.Visited,
+                                                        Controls.SpecialMarker.CurrentLocation);
+                                                    GameMap.UpdateNodeState(
+                                                        "mountain_edge_map",
+                                                        "me_parking_lot",
+                                                        Controls.LocationState.Visited,
+                                                        Controls.SpecialMarker.None);
+                                                    _activeTutorialDialogue?
+                                                        .GoToScene("intro_move_booth");
+                                                };
+                                            });
                                     });
                                 break;
 
@@ -880,14 +926,41 @@ namespace LostInAForgottenCity.Views
                                                 .GetResultGameline(effect),
                                             TextType.Gameline,
                                             onComplete: () =>
-                                                _activeTutorialDialogue?
-                                                    .GoToScene("intro_move_signs"));
+                                            {
+                                                GameConsole.AddText(
+                                                    "Traveling . . . . . .",
+                                                    TextType.Description);
+
+                                                GameMap.SwitchToTab("mountain_edge_map");
+                                                GameMap.StartTravel(
+                                                    "me_parking_lot",
+                                                    "me_cluster_signs");
+
+                                                GameMap.OnTravelComplete = () =>
+                                                {
+                                                    GameMap.OnTravelComplete = null;
+                                                    GameMap.UpdateNodeState(
+                                                        "mountain_edge_map",
+                                                        "me_cluster_signs",
+                                                        Controls.LocationState.Visited,
+                                                        Controls.SpecialMarker.CurrentLocation);
+                                                    GameMap.UpdateNodeState(
+                                                        "mountain_edge_map",
+                                                        "me_parking_lot",
+                                                        Controls.LocationState.Visited,
+                                                        Controls.SpecialMarker.None);
+                                                    _activeTutorialDialogue?
+                                                        .GoToScene("intro_move_signs");
+                                                };
+                                            });
                                     });
                                 break;
-                            
+
                             default:
-                                dialogue.GoToScene(nextId, effect);
-                                break;
+                            if (nextId == "intro_look_around")
+                                _hasLookedAround = true;
+                            dialogue.GoToScene(nextId, effect);
+                            break;
                         }
                     });
                 });
@@ -901,7 +974,23 @@ namespace LostInAForgottenCity.Views
                     {
                         case "intro_mountain_edge_arrival":
                             RevealPanel(UIPanel.Map);
+                            // Discover all landmarks when player arrives
+                            GameMap.UpdateNodeState(
+                                "mountain_edge_map",
+                                "me_parking_lot",
+                                Controls.LocationState.Discovered);
+                            GameMap.UpdateNodeState(
+                                "mountain_edge_map",
+                                "me_empty_booth",
+                                Controls.LocationState.Discovered);
+                            GameMap.UpdateNodeState(
+                                "mountain_edge_map",
+                                "me_cluster_signs",
+                                Controls.LocationState.Discovered);
+                            // Switch to location map
+                            GameMap.SwitchToTab("mountain_edge_map");
                             break;
+
                         case "intro_look_around_reveal":
                             RevealPanel(UIPanel.Clock);
                             RevealPanel(UIPanel.Stamina);
@@ -972,9 +1061,12 @@ namespace LostInAForgottenCity.Views
                                     if (confirmIndex == 1)
                                     {
                                         // Back to destination choice
+                                        // Skip look around if already used
                                         _activeTutorialDialogue?
                                             .GoToScene(
-                                            "intro_mountain_edge_arrival");
+                                                _hasLookedAround
+                                                    ? "intro_look_around_reveal"
+                                                    : "intro_mountain_edge_arrival");
                                         return;
                                     }
 
@@ -983,63 +1075,6 @@ namespace LostInAForgottenCity.Views
                                 });
                         });
                 });
-        }
-
-        // ── Travel animation ──────────────────────────
-        private void StartTravelAnimation(
-            string regionFromId, string locationId,
-            string landmarkToId, Action onComplete)
-        {
-            // Switch to location map
-            var locationTabId = $"{locationId}_map";
-            var locationTab = GameMap
-                .GetAvailableTab(locationTabId);
-
-            if (locationTab != null)
-            {
-                GameMap.SwitchToTab(locationTabId);
-                GameMap.StartTravel(
-                    GetCurrentLandmark(locationId),
-                    landmarkToId);
-            }
-
-            // Show travel message in console
-            ShowTravelMessage(onComplete);
-        }
-
-        private void ShowTravelMessage(Action onComplete)
-        {
-            var travelTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(500)
-            };
-            int dots = 0;
-            travelTimer.Tick += (s, e) =>
-            {
-                dots++;
-                string msg = "Traveling" + new string('.', dots);
-                // Update last console line
-                if (dots >= 6)
-                {
-                    travelTimer.Stop();
-                    onComplete();
-                }
-            };
-
-            GameConsole.AddText("Traveling . . . . . .",
-                TextType.Description,
-                onComplete: () => { });
-            travelTimer.Start();
-        }
-
-        private string GetCurrentLandmark(string locationId)
-        {
-            // Returns current landmark within a location
-            return locationId switch
-            {
-                "mountain_edge" => "me_parking_lot",
-                _ => ""
-            };
         }
 
         // ── Test console ──────────────────────────
