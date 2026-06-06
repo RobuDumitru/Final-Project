@@ -5,16 +5,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using LostInAForgottenCity.Engine;
 
 namespace LostInAForgottenCity.Views
 {
-    public enum TextType
-    {
-        Description,
-        Dialogue,
-        Gameline
-    }
-
     public partial class ConsolePanel : UserControl
     {
         private DispatcherTimer _typewriterTimer = new();

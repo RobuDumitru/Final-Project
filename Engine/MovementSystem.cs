@@ -27,11 +27,11 @@ namespace LostInAForgottenCity.Engine
         {
             return distance switch
             {
-                TravelDistance.Immediate => (5,  0.25),
-                TravelDistance.Close     => (10, 0.5),
-                TravelDistance.Near      => (15, 0.75),
-                TravelDistance.Far       => (20, 1.0),
-                TravelDistance.Distant   => (30, 1.5),
+                TravelDistance.Immediate => (5, 0.25),
+                TravelDistance.Close => (10, 0.5),
+                TravelDistance.Near => (15, 0.75),
+                TravelDistance.Far => (20, 1.0),
+                TravelDistance.Distant => (30, 1.5),
                 _ => (10, 0.5)
             };
         }
@@ -42,11 +42,11 @@ namespace LostInAForgottenCity.Engine
         {
             return distance switch
             {
-                TravelDistance.Immediate => (5,  1.0),
-                TravelDistance.Close     => (10, 2.0),
-                TravelDistance.Near      => (15, 3.0),
-                TravelDistance.Far       => (20, 4.0),
-                TravelDistance.Distant   => (25, 5.0),
+                TravelDistance.Immediate => (5, 1.0),
+                TravelDistance.Close => (10, 2.0),
+                TravelDistance.Near => (15, 3.0),
+                TravelDistance.Far => (20, 4.0),
+                TravelDistance.Distant => (25, 5.0),
                 _ => (10, 2.0)
             };
         }
@@ -58,10 +58,10 @@ namespace LostInAForgottenCity.Engine
             return distance switch
             {
                 TravelDistance.Immediate => (30, 5.0),
-                TravelDistance.Close     => (45, 8.0),
-                TravelDistance.Near      => (60, 10.0),
-                TravelDistance.Far       => (75, 13.0),
-                TravelDistance.Distant   => (90, 15.0),
+                TravelDistance.Close => (45, 8.0),
+                TravelDistance.Near => (60, 10.0),
+                TravelDistance.Far => (75, 13.0),
+                TravelDistance.Distant => (90, 15.0),
                 _ => (45, 8.0)
             };
         }
@@ -70,21 +70,21 @@ namespace LostInAForgottenCity.Engine
 
         private static double GetTimeModifier(
             MovementType type) => type switch
-        {
-            MovementType.Carefully => 1.5,
-            MovementType.Normally  => 1.0,
-            MovementType.Quickly   => 0.5,
-            _ => 1.0
-        };
+            {
+                MovementType.Carefully => 1.5,
+                MovementType.Normally => 1.0,
+                MovementType.Quickly => 0.5,
+                _ => 1.0
+            };
 
         private static double GetSleepModifier(
             MovementType type) => type switch
-        {
-            MovementType.Carefully => 0.95,
-            MovementType.Normally  => 1.0,
-            MovementType.Quickly   => 1.1,
-            _ => 1.0
-        };
+            {
+                MovementType.Carefully => 0.95,
+                MovementType.Normally => 1.0,
+                MovementType.Quickly => 1.1,
+                _ => 1.0
+            };
 
         private static int GetStaminaRestore(
             MovementType type,
@@ -94,10 +94,10 @@ namespace LostInAForgottenCity.Engine
             return distance switch
             {
                 TravelDistance.Immediate => 1,
-                TravelDistance.Close     => 1,
-                TravelDistance.Near      => 1,
-                TravelDistance.Far       => 2,
-                TravelDistance.Distant   => 2,
+                TravelDistance.Close => 1,
+                TravelDistance.Near => 1,
+                TravelDistance.Far => 2,
+                TravelDistance.Distant => 2,
                 _ => 1
             };
         }
@@ -116,46 +116,46 @@ namespace LostInAForgottenCity.Engine
             switch (navState)
             {
                 case NavigationState.OnTheWay:
-                {
-                    var (seconds, sleep) =
-                        GetOnTheWayBase(distance);
-                    return new StatEffect
                     {
-                        TimeSeconds = (int)Math.Round(
-                            seconds * timeMod),
-                        Sleep = -Math.Round(
-                            sleep * sleepMod, 2),
-                        Stamina = stamina
-                    };
-                }
+                        var (seconds, sleep) =
+                            GetOnTheWayBase(distance);
+                        return new StatEffect
+                        {
+                            TimeSeconds = (int)Math.Round(
+                                seconds * timeMod),
+                            Sleep = -Math.Round(
+                                sleep * sleepMod, 2),
+                            Stamina = stamina
+                        };
+                    }
 
                 case NavigationState.OnThePath:
-                {
-                    var (minutes, sleep) =
-                        GetOnThePathBase(distance);
-                    return new StatEffect
                     {
-                        TimeMinutes = (int)Math.Round(
-                            minutes * timeMod),
-                        Sleep = -Math.Round(
-                            sleep * sleepMod, 2),
-                        Stamina = stamina
-                    };
-                }
+                        var (minutes, sleep) =
+                            GetOnThePathBase(distance);
+                        return new StatEffect
+                        {
+                            TimeMinutes = (int)Math.Round(
+                                minutes * timeMod),
+                            Sleep = -Math.Round(
+                                sleep * sleepMod, 2),
+                            Stamina = stamina
+                        };
+                    }
 
                 case NavigationState.OnTheRoad:
-                {
-                    var (minutes, sleep) =
-                        GetOnTheRoadBase(distance);
-                    return new StatEffect
                     {
-                        TimeMinutes = (int)Math.Round(
-                            minutes * timeMod),
-                        Sleep = -Math.Round(
-                            sleep * sleepMod, 2),
-                        Stamina = stamina
-                    };
-                }
+                        var (minutes, sleep) =
+                            GetOnTheRoadBase(distance);
+                        return new StatEffect
+                        {
+                            TimeMinutes = (int)Math.Round(
+                                minutes * timeMod),
+                            Sleep = -Math.Round(
+                                sleep * sleepMod, 2),
+                            Stamina = stamina
+                        };
+                    }
 
                 default:
                     return new StatEffect();
@@ -200,8 +200,8 @@ namespace LostInAForgottenCity.Engine
             string movText = movType switch
             {
                 MovementType.Carefully => "carefully",
-                MovementType.Normally  => "normally",
-                MovementType.Quickly   => "quickly",
+                MovementType.Normally => "normally",
+                MovementType.Quickly => "quickly",
                 _ => "normally"
             };
 
@@ -212,6 +212,31 @@ namespace LostInAForgottenCity.Engine
                 $"\n{timeText} — " +
                 $"{Math.Abs(effect.Sleep):0.##} sleep lost" +
                 $"{staminaText}";
+        }
+        public static int GetTravelSegments(
+            TravelDistance distance,
+            MovementType movType)
+        {
+            // Base segments per distance
+            int baseSegments = distance switch
+            {
+                TravelDistance.Immediate => 2,
+                TravelDistance.Close => 4,
+                TravelDistance.Near => 6,
+                TravelDistance.Far => 8,
+                TravelDistance.Distant => 12,
+                _ => 4
+            };
+
+            // Movement type affects animation speed
+            return movType switch
+            {
+                MovementType.Carefully => baseSegments + 2,
+                MovementType.Normally => baseSegments,
+                MovementType.Quickly => Math.Max(1,
+                    baseSegments - 2),
+                _ => baseSegments
+            };
         }
     }
 }
