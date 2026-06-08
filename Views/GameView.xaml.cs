@@ -393,6 +393,7 @@ namespace LostInAForgottenCity.Views
         }
 
         // ── Tutorial start ────────────────────────
+        // ── Tutorial start ────────────────────────
         public void StartTutorial(string firstSceneId)
         {
             GameConsole.ClearConsole();
@@ -405,310 +406,126 @@ namespace LostInAForgottenCity.Views
             foreach (var npc in TutorialData.GetSimplifiedNPCs())
                 _state.Engine.NPCs[npc.Key] = npc.Value;
 
-            _state.Engine.CurrentPlayer.CurrentLocationId =
-                "mountain_edge";
+            _state.Engine.CurrentPlayer.CurrentLocationId = "mountain_edge";
             TimeDisplay.IsDayCounterVisible = false;
 
-            // ── Build Unknown region map ──────────────
-            var regionNodes = new List<Controls.MapNode>
-            {
-                // South (index 0)
-                new() {
-                    Id = "mountain_edge",
-                    Name = "Mountain Edge",
-                    BaseIcon = "⛰",
-                    State = Controls.LocationState.Visited,
-                    Special = Controls.SpecialMarker.CurrentLocation,
-                    Type = Controls.LocationType.Normal
-                },
-                // Middle (index 1)
-                new() {
-                    Id = "random_ruins",
-                    Name = "Random Ruins",
-                    BaseIcon = "🏚",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                // North (index 2)
-                new() {
-                    Id = "extravagant_palace",
-                    Name = "Extravagant Palace",
-                    BaseIcon = "🏛",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                }
-            };
+            var nav = NavigationManager.Instance;
 
-            var regionConnections = new List<Controls.MapConnection>
-            {
-                new() {
-                    FromId = "mountain_edge",
-                    ToId = "random_ruins",
-                    Distance = Controls.TravelDistance.Close
-                },
-                new() {
-                    FromId = "random_ruins",
-                    ToId = "extravagant_palace",
-                    Distance = Controls.TravelDistance.Near
-                }
-            };
-
-            // Pass connections to layout so spacing reflects distance
-            Controls.MapPanel.GenerateLayout(regionNodes, regionConnections, 280, 300);
-
-            // ── Build location maps ───────────────────
-
-            // Mountain Edge landmarks
-            var mountainEdgeNodes = new List<Controls.MapNode>
-            {
-                new() {
-                    Id = "me_parking_lot",
-                    Name = "Parking Lot",
-                    BaseIcon = "🅿",
-                    State = Controls.LocationState.Visited,
-                    Special = Controls.SpecialMarker.CurrentLocation,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "me_empty_booth",
-                    Name = "Empty Booth",
-                    BaseIcon = "🏠",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "me_cluster_signs",
-                    Name = "Cluster of Signs",
-                    BaseIcon = "🪧",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                }
-            };
-
-            var mountainEdgeConnections = new List<Controls.MapConnection>
-            {
-                new() {
-                    FromId = "me_parking_lot",
-                    ToId = "me_empty_booth",
-                    Distance = Controls.TravelDistance.Close
-                },
-                new() {
-                    FromId = "me_empty_booth",
-                    ToId = "me_cluster_signs",
-                    Distance = Controls.TravelDistance.Near
-                },
-                new() {
-                    FromId = "me_parking_lot",
-                    ToId = "me_cluster_signs",
-                    Distance = Controls.TravelDistance.Far
-                }
-            };
-
-            Controls.MapPanel.GenerateLayout(mountainEdgeNodes, mountainEdgeConnections, 280, 300);
-
-            // Random Ruins landmarks
-            var ruinsNodes = new List<Controls.MapNode>
-            {
-                new() {
-                    Id = "rr_intact_house",
-                    Name = "Intact House",
-                    BaseIcon = "🏠",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "rr_damaged_store",
-                    Name = "Damaged Store",
-                    BaseIcon = "🏪",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "rr_warehouse",
-                    Name = "Warehouse",
-                    BaseIcon = "🏭",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "rr_tower",
-                    Name = "Half Collapsed Tower",
-                    BaseIcon = "🗼",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                }
-            };
-
-            var ruinsConnections = new List<Controls.MapConnection>
-            {
-                new() {
-                    FromId = "rr_intact_house",
-                    ToId = "rr_damaged_store",
-                    Distance = Controls.TravelDistance.Close
-                },
-                new() {
-                    FromId = "rr_damaged_store",
-                    ToId = "rr_warehouse",
-                    Distance = Controls.TravelDistance.Near
-                },
-                new() {
-                    FromId = "rr_warehouse",
-                    ToId = "rr_tower",
-                    Distance = Controls.TravelDistance.Far
-                },
-                new() {
-                    FromId = "rr_intact_house",
-                    ToId = "rr_tower",
-                    Distance = Controls.TravelDistance.Distant
-                }
-            };
-
-            Controls.MapPanel.GenerateLayout(ruinsNodes, ruinsConnections, 280, 300);
-
-            // Extravagant Palace landmarks
-            var palaceNodes = new List<Controls.MapNode>
-            {
-                new() {
-                    Id = "ep_main_hall",
-                    Name = "Main Hall",
-                    BaseIcon = "🏛",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "ep_basement",
-                    Name = "Basement",
-                    BaseIcon = "⬛",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "ep_storage",
-                    Name = "Storage Room",
-                    BaseIcon = "📦",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "ep_kitchen",
-                    Name = "Kitchen",
-                    BaseIcon = "🍳",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "ep_bedroom",
-                    Name = "Bedroom",
-                    BaseIcon = "🛏",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal
-                },
-                new() {
-                    Id = "ep_sturdy_room",
-                    Name = "Sturdy Room",
-                    BaseIcon = "⌂",
-                    State = Controls.LocationState.Undiscovered,
-                    Type = Controls.LocationType.Normal,
-                    HasDiscoveredSafeRoom = false
-                }
-            };
-
-            var palaceConnections = new List<Controls.MapConnection>
-            {
-                new() {
-                    FromId = "ep_main_hall",
-                    ToId = "ep_basement",
-                    Distance = Controls.TravelDistance.Immediate
-                },
-                new() {
-                    FromId = "ep_main_hall",
-                    ToId = "ep_storage",
-                    Distance = Controls.TravelDistance.Close
-                },
-                new() {
-                    FromId = "ep_storage",
-                    ToId = "ep_kitchen",
-                    Distance = Controls.TravelDistance.Close
-                },
-                new() {
-                    FromId = "ep_kitchen",
-                    ToId = "ep_bedroom",
-                    Distance = Controls.TravelDistance.Near
-                },
-                new() {
-                    FromId = "ep_bedroom",
-                    ToId = "ep_sturdy_room",
-                    Distance = Controls.TravelDistance.Immediate
-                }
-            };
-
-            Controls.MapPanel.GenerateLayout(palaceNodes, palaceConnections, 280, 300);
-
-            // ── Load region map as current ────────────
-            GameMap.LoadMap(regionNodes, regionConnections,
+            // ── Generate maps ─────────────────────────
+            var regionMap = MapGenerator.Generate(
                 "unknown_region", "Unknown",
-                Controls.MapType.Region,
-                "mountain_edge");
+                GameMapType.Region, MapSize.Small,
+                new List<(string, string, string, MapSize)>
+                {
+            ("mountain_edge",      "Mountain Edge",      "⛰", MapSize.Medium),
+            ("random_ruins",       "Random Ruins",       "🏚", MapSize.Medium),
+            ("extravagant_palace", "Extravagant Palace", "🏛", MapSize.Large)
+                });
 
-            // ── Add location maps as available ────────
-            GameMap.AddAvailableMap(new Controls.MapTab
-            {
-                Id = "mountain_edge_map",
-                Title = "Mountain Edge",
-                Type = Controls.MapType.Location,
-                IsUnlocked = true,
-                Nodes = mountainEdgeNodes,
-                Connections = mountainEdgeConnections
-            });
+            var mountainEdgeMap = MapGenerator.Generate(
+                "mountain_edge", "Mountain Edge",
+                GameMapType.Location, MapSize.Small,
+                new List<(string, string, string, MapSize)>
+                {
+            ("me_parking_lot",   "Parking Lot",      "🅿", MapSize.Small),
+            ("me_empty_booth",   "Empty Booth",       "🏠", MapSize.Small),
+            ("me_cluster_signs", "Cluster of Signs",  "🪧", MapSize.Small)
+                });
 
-            GameMap.AddAvailableMap(new Controls.MapTab
+            var ruinsMap = MapGenerator.Generate(
+                "random_ruins", "Random Ruins",
+                GameMapType.Location, MapSize.Small,
+                new List<(string, string, string, MapSize)>
+                {
+            ("rr_intact_house",  "Intact House",           "🏠", MapSize.Small),
+            ("rr_damaged_store", "Damaged Store",          "🏪", MapSize.Small),
+            ("rr_warehouse",     "Warehouse",              "🏭", MapSize.Medium),
+            ("rr_tower",         "Half Collapsed Tower",   "🗼", MapSize.Medium)
+                });
+
+            var palaceMap = MapGenerator.Generate(
+                "extravagant_palace", "Extravagant Palace",
+                GameMapType.Location, MapSize.Medium,
+                new List<(string, string, string, MapSize)>
+                {
+            ("ep_main_hall",   "Main Hall",    "🏛", MapSize.Large),
+            ("ep_basement",    "Basement",     "⬛", MapSize.Medium),
+            ("ep_storage",     "Storage Room", "📦", MapSize.Small),
+            ("ep_kitchen",     "Kitchen",      "🍳", MapSize.Small),
+            ("ep_bedroom",     "Bedroom",      "🛏", MapSize.Small),
+            ("ep_sturdy_room", "Sturdy Room",  "⌂", MapSize.Medium)
+                });
+
+            // ── Set up NavigationManager ──────────────
+            nav.SetRegionMap(regionMap);
+            nav.AddLocationMap("mountain_edge", mountainEdgeMap);
+            nav.AddLocationMap("random_ruins", ruinsMap);
+            nav.AddLocationMap("extravagant_palace", palaceMap);
+
+            // ── Load maps into panel ──────────────────
+            GameMap.LoadMap(mountainEdgeMap,
+                "mountain_edge_map", "Mountain Edge",
+                MapType.Location);
+
+            GameMap.AddAvailableMap(new MapTab
             {
                 Id = "random_ruins_map",
                 Title = "Random Ruins",
-                Type = Controls.MapType.Location,
-                IsUnlocked = false,  // unlocked when visited
-                Nodes = ruinsNodes,
-                Connections = ruinsConnections
+                Type = MapType.Location,
+                IsUnlocked = false,
+                Map = ruinsMap
             });
 
-            GameMap.AddAvailableMap(new Controls.MapTab
+            GameMap.AddAvailableMap(new MapTab
             {
                 Id = "extravagant_palace_map",
                 Title = "Extravagant Palace",
-                Type = Controls.MapType.Location,
-                IsUnlocked = false,  // unlocked when visited
-                Nodes = palaceNodes,
-                Connections = palaceConnections
+                Type = MapType.Location,
+                IsUnlocked = false,
+                Map = palaceMap
             });
 
-            // Mountain Edge — player arrived from south
-            GameMap.SetBorderEntry(
-                "mountain_edge_map",
-                "S",           // arrived from south
-                0.5,           // center of south border
-                GameMap.FindNearestLandmark(
-                    "mountain_edge_map", "S"),
-                isPlayerHere: true);
+            GameMap.AddAvailableMap(new MapTab
+            {
+                Id = "unknown_region",
+                Title = "Unknown",
+                Type = MapType.Region,
+                IsUnlocked = true,
+                Map = regionMap
+            });
 
-            // Random Ruins — will arrive from south (from Mountain Edge)
-            GameMap.SetBorderEntry(
-                "random_ruins_map",
-                "S",
-                0.5,
-                GameMap.FindNearestLandmark(
-                    "random_ruins_map", "S"),
-                isPlayerHere: false);
+            // ── Wire NavigationManager events ─────────
+            nav.OnConsoleMessage += (text, type) =>
+                Dispatcher.Invoke(() =>
+                    GameConsole.AddText(text, type));
 
-            // Extravagant Palace — will arrive from south
-            GameMap.SetBorderEntry(
-                "extravagant_palace_map",
-                "S",
-                0.5,
-                GameMap.FindNearestLandmark(
-                    "extravagant_palace_map", "S"),
-                isPlayerHere: false);
+            nav.OnOptionsGenerated += options =>
+                Dispatcher.Invoke(() =>
+                    ShowNavigationOptions(options, nav));
 
-            // ── Wire dialogue ─────────────────────────
+            nav.OnStatEffect += effect =>
+                Dispatcher.Invoke(() => ApplyStatEffect(effect));
+
+            nav.OnMapChanged += map =>
+                Dispatcher.Invoke(() =>
+                {
+                    // Find which tab this map belongs to
+                    string tabId = map.Id switch
+                    {
+                        "unknown_region" => "unknown_region",
+                        "mountain_edge" => "mountain_edge_map",
+                        "random_ruins" => "random_ruins_map",
+                        "extravagant_palace" => "extravagant_palace_map",
+                        _ => map.Id
+                    };
+                    GameMap.SwitchToTab(tabId);
+                });
+
+            nav.OnNarrativeTrigger += triggerId =>
+                Dispatcher.Invoke(() =>
+                    HandleTutorialTrigger(triggerId));
+
+            // ── Wire dialogue engine ──────────────────
             var dialogue = new DialogueEngine();
             dialogue.LoadDialogue(DialogueData.GetTutorialDialogue());
             _activeTutorialDialogue = dialogue;
@@ -750,25 +567,7 @@ namespace LostInAForgottenCity.Views
             };
 
             dialogue.OnEffectApplied += effect =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    if (effect.Stamina != 0)
-                        _state.ModifyStamina(effect.Stamina);
-                    if (effect.Sleep != 0)
-                        _state.ModifySleep(effect.Sleep);
-                    if (effect.Sanity != 0)
-                        _state.ModifySanity(effect.Sanity);
-                    if (effect.HP != 0)
-                        _state.ModifyHP(effect.HP);
-                    if (effect.Soul != 0)
-                        _state.ModifySoul(effect.Soul);
-                    if (effect.Resistance != 0)
-                        _state.ModifyResistance(effect.Resistance);
-                    if (effect.TimeMinutes != 0)
-                        _state.AdvanceTime(effect.TimeMinutes);
-                });
-            };
+                Dispatcher.Invoke(() => ApplyStatEffect(effect));
 
             dialogue.OnChoices += choices =>
             {
@@ -786,181 +585,30 @@ namespace LostInAForgottenCity.Views
                         if (_deathCheckpoints.TryGetValue(
                             nextId, out string? checkpoint))
                         {
-                            bool slow = nextId == "intro_death_exhaustion";
+                            bool slow = nextId ==
+                                "intro_death_exhaustion";
                             ShowTutorialDeath(
                                 nextId == "intro_death_bridge"
-                                    ? "He was brave, but bravery without " +
-                                      "caution is just another way to die."
-                                    : "He was cautious, but caution without " +
-                                      "decisiveness is just a slower end.",
+                                    ? "He was brave, but bravery " +
+                                      "without caution is just " +
+                                      "another way to die."
+                                    : "He was cautious, but caution " +
+                                      "without decisiveness is just " +
+                                      "a slower end.",
                                 checkpoint, slow);
                             return;
                         }
 
                         switch (nextId)
                         {
+                            // Opening ends — hand off to NavigationManager
                             case "intro_mountain_edge":
-                                dialogue.GoToScene(
-                                    "intro_mountain_edge_arrival", effect);
-                                break;
-
-                            // Movement choices — start travel animation
-                            case "intro_move_parking_lot":
-                                ShowMovementFlow(
-                                    "Parking Lot",
-                                    "intro_move_parking_lot",
-                                    Controls.TravelDistance.Immediate,
-                                    Engine.NavigationState.OnThePath,
-                                    effect =>
-                                    {
-                                        // Apply stats
-                                        if (effect.Sleep != 0)
-                                            _state.ModifySleep(effect.Sleep);
-                                        if (effect.TimeMinutes != 0)
-                                            _state.AdvanceTime(effect.TimeMinutes);
-                                        if (effect.TimeSeconds != 0)
-                                            _state.AdvanceTimeSeconds(
-                                                effect.TimeSeconds);
-                                        if (effect.Stamina != 0)
-                                            _state.ModifyStamina(effect.Stamina);
-
-                                        // Show result gameline
-                                        GameConsole.AddText(
-                                            Engine.MovementSystem
-                                                .GetResultGameline(effect),
-                                            TextType.Gameline,
-                                            onComplete: () =>
-                                            {
-                                                // Show travel message + animate map
-                                                GameConsole.AddText(
-                                                    "Traveling . . . . . .",
-                                                    TextType.Description);
-
-                                                // Start map travel animation
-                                                GameMap.SwitchToTab("mountain_edge_map");
-                                                GameMap.StartTravel(
-                                                    "me_parking_lot",
-                                                    "me_parking_lot");
-
-                                                // Since parking lot IS current location
-                                                // travel is immediate — go directly
-                                                _activeTutorialDialogue?
-                                                    .GoToScene("intro_move_parking_lot");
-                                            });
-                                    });
-                                break;
-
-                            case "intro_move_booth":
-                                ShowMovementFlow(
-                                    "Empty Booth",
-                                    "intro_move_booth",
-                                    Controls.TravelDistance.Close,
-                                    Engine.NavigationState.OnThePath,
-                                    effect =>
-                                    {
-                                        if (effect.Sleep != 0)
-                                            _state.ModifySleep(effect.Sleep);
-                                        if (effect.TimeMinutes != 0)
-                                            _state.AdvanceTime(effect.TimeMinutes);
-                                        if (effect.TimeSeconds != 0)
-                                            _state.AdvanceTimeSeconds(
-                                                effect.TimeSeconds);
-                                        if (effect.Stamina != 0)
-                                            _state.ModifyStamina(effect.Stamina);
-
-                                        GameConsole.AddText(
-                                            Engine.MovementSystem
-                                                .GetResultGameline(effect),
-                                            TextType.Gameline,
-                                            onComplete: () =>
-                                            {
-                                                GameConsole.AddText(
-                                                    "Traveling . . . . . .",
-                                                    TextType.Description);
-
-                                                GameMap.SwitchToTab("mountain_edge_map");
-                                                GameMap.StartTravel(
-                                                    "me_parking_lot",
-                                                    "me_empty_booth");
-
-                                                GameMap.OnTravelComplete = () =>
-                                                {
-                                                    GameMap.OnTravelComplete = null;
-                                                    GameMap.UpdateNodeState(
-                                                        "mountain_edge_map",
-                                                        "me_empty_booth",
-                                                        Controls.LocationState.Visited,
-                                                        Controls.SpecialMarker.CurrentLocation);
-                                                    GameMap.UpdateNodeState(
-                                                        "mountain_edge_map",
-                                                        "me_parking_lot",
-                                                        Controls.LocationState.Visited,
-                                                        Controls.SpecialMarker.None);
-                                                    _activeTutorialDialogue?
-                                                        .GoToScene("intro_move_booth");
-                                                };
-                                            });
-                                    });
-                                break;
-
-                            case "intro_move_signs":
-                                ShowMovementFlow(
-                                    "Cluster of Signs",
-                                    "intro_move_signs",
-                                    Controls.TravelDistance.Far,
-                                    Engine.NavigationState.OnThePath,
-                                    effect =>
-                                    {
-                                        if (effect.Sleep != 0)
-                                            _state.ModifySleep(effect.Sleep);
-                                        if (effect.TimeMinutes != 0)
-                                            _state.AdvanceTime(effect.TimeMinutes);
-                                        if (effect.TimeSeconds != 0)
-                                            _state.AdvanceTimeSeconds(
-                                                effect.TimeSeconds);
-                                        if (effect.Stamina != 0)
-                                            _state.ModifyStamina(effect.Stamina);
-
-                                        GameConsole.AddText(
-                                            Engine.MovementSystem
-                                                .GetResultGameline(effect),
-                                            TextType.Gameline,
-                                            onComplete: () =>
-                                            {
-                                                GameConsole.AddText(
-                                                    "Traveling . . . . . .",
-                                                    TextType.Description);
-
-                                                GameMap.SwitchToTab("mountain_edge_map");
-                                                GameMap.StartTravel(
-                                                    "me_parking_lot",
-                                                    "me_cluster_signs");
-
-                                                GameMap.OnTravelComplete = () =>
-                                                {
-                                                    GameMap.OnTravelComplete = null;
-                                                    GameMap.UpdateNodeState(
-                                                        "mountain_edge_map",
-                                                        "me_cluster_signs",
-                                                        Controls.LocationState.Visited,
-                                                        Controls.SpecialMarker.CurrentLocation);
-                                                    GameMap.UpdateNodeState(
-                                                        "mountain_edge_map",
-                                                        "me_parking_lot",
-                                                        Controls.LocationState.Visited,
-                                                        Controls.SpecialMarker.None);
-                                                    _activeTutorialDialogue?
-                                                        .GoToScene("intro_move_signs");
-                                                };
-                                            });
-                                    });
+                                OnOpeningComplete(nav);
                                 break;
 
                             default:
-                            if (nextId == "intro_look_around")
-                                _hasLookedAround = true;
-                            dialogue.GoToScene(nextId, effect);
-                            break;
+                                dialogue.GoToScene(nextId, effect);
+                                break;
                         }
                     });
                 });
@@ -972,25 +620,6 @@ namespace LostInAForgottenCity.Views
                 {
                     switch (sceneId)
                     {
-                        case "intro_mountain_edge_arrival":
-                            RevealPanel(UIPanel.Map);
-                            // Discover all landmarks when player arrives
-                            GameMap.UpdateNodeState(
-                                "mountain_edge_map",
-                                "me_parking_lot",
-                                Controls.LocationState.Discovered);
-                            GameMap.UpdateNodeState(
-                                "mountain_edge_map",
-                                "me_empty_booth",
-                                Controls.LocationState.Discovered);
-                            GameMap.UpdateNodeState(
-                                "mountain_edge_map",
-                                "me_cluster_signs",
-                                Controls.LocationState.Discovered);
-                            // Switch to location map
-                            GameMap.SwitchToTab("mountain_edge_map");
-                            break;
-
                         case "intro_look_around_reveal":
                             RevealPanel(UIPanel.Clock);
                             RevealPanel(UIPanel.Stamina);
@@ -1010,14 +639,147 @@ namespace LostInAForgottenCity.Views
             dialogue.StartScene(firstSceneId);
         }
 
+        // ── Opening complete → hand off to NavigationManager ──
+        private void OnOpeningComplete(NavigationManager nav)
+        {
+            // Reveal map
+            RevealPanel(UIPanel.Map);
+
+            // Set starting position
+            nav.SetStartPosition("mountain_edge", "me_parking_lot");
+        }
+
+        // ── Apply stat effect ─────────────────────────
+        private void ApplyStatEffect(Engine.StatEffect effect)
+        {
+            if (effect.Stamina != 0)
+                _state.ModifyStamina(effect.Stamina);
+            if (effect.Sleep != 0)
+                _state.ModifySleep(effect.Sleep);
+            if (effect.Sanity != 0)
+                _state.ModifySanity(effect.Sanity);
+            if (effect.HP != 0)
+                _state.ModifyHP(effect.HP);
+            if (effect.Soul != 0)
+                _state.ModifySoul(effect.Soul);
+            if (effect.Resistance != 0)
+                _state.ModifyResistance(effect.Resistance);
+            if (effect.TimeMinutes != 0)
+                _state.AdvanceTime(effect.TimeMinutes);
+            if (effect.TimeSeconds != 0)
+                _state.AdvanceTimeSeconds(effect.TimeSeconds);
+        }
+
+        // ── Show navigation options from NavigationManager ──
+        private void ShowNavigationOptions(
+            List<Engine.NavigationOption> options,
+            NavigationManager nav)
+        {
+            var labels = options.Select(o => o.Label).ToList();
+
+            GameConsole.ShowOptions(labels, index =>
+            {
+                var option = options[index];
+
+                if (option.Type == Engine.OptionType.LookAround)
+                {
+                    nav.ExecuteLookAround();
+                    return;
+                }
+
+                // Movement — show type choice then confirm
+                ShowMovementTypeChoice(option, nav);
+            });
+        }
+
+        // ── Movement type choice ──────────────────────
+        private void ShowMovementTypeChoice(
+            Engine.NavigationOption option,
+            NavigationManager nav)
+        {
+            GameConsole.ShowOptions(
+                new List<string>
+                {
+            "Move carefully.",
+            "Move normally.",
+            "Move quickly."
+                },
+                movIndex =>
+                {
+                    var movType = movIndex switch
+                    {
+                        0 => Engine.MovementType.Carefully,
+                        1 => Engine.MovementType.Normally,
+                        _ => Engine.MovementType.Quickly
+                    };
+
+                    var effect = Engine.MovementSystem.Calculate(
+                        option.NavState,
+                        option.Distance,
+                        movType);
+
+                    string confirmText = Engine.MovementSystem
+                        .GetConfirmationText(
+                            option.TargetNodeName ?? "",
+                            option.NavState,
+                            option.Distance,
+                            movType);
+
+                    GameConsole.AddText(confirmText,
+                        TextType.Gameline,
+                        onComplete: () =>
+                        {
+                            GameConsole.ShowOptions(
+                                new List<string>
+                                {
+                            "Yes.",
+                            "Let me think."
+                                },
+                                confirmIndex =>
+                                {
+                                    if (confirmIndex == 1)
+                                    {
+                                        nav.GenerateOptions();
+                                        return;
+                                    }
+
+                                    nav.ExecuteMovement(
+                                        option, movType);
+                                });
+                        });
+                });
+        }
+
+        // ── Handle narrative triggers ─────────────────
+        private void HandleTutorialTrigger(string triggerId)
+        {
+            switch (triggerId)
+            {
+                case "look_around_first":
+                    RevealPanel(UIPanel.Clock);
+                    RevealPanel(UIPanel.Stamina);
+                    _activeTutorialDialogue?
+                        .GoToScene("intro_look_around_reveal");
+                    break;
+
+                case "arrive_random_ruins":
+                    GameMap.SwitchToTab("random_ruins_map");
+                    break;
+
+                case "arrive_extravagant_palace":
+                    GameMap.SwitchToTab("extravagant_palace_map");
+                    break;
+            }
+        }
+
+        // ── Movement flow (kept for dialogue-driven scenes) ──
         private void ShowMovementFlow(
             string destinationName,
             string nextSceneId,
-            Controls.TravelDistance distance,
+            Engine.TravelDistance distance,
             Engine.NavigationState navState,
             Action<Engine.StatEffect> onConfirm)
         {
-            // Step 1: Movement type choice
             GameConsole.ShowOptions(
                 new List<string>
                 {
@@ -1044,12 +806,10 @@ namespace LostInAForgottenCity.Views
                             distance,
                             movType);
 
-                    // Step 2: Show cost summary
-                    GameConsole.AddText(
-                        confirmText, TextType.Gameline,
+                    GameConsole.AddText(confirmText,
+                        TextType.Gameline,
                         onComplete: () =>
                         {
-                            // Step 3: Confirmation
                             GameConsole.ShowOptions(
                                 new List<string>
                                 {
@@ -1060,17 +820,10 @@ namespace LostInAForgottenCity.Views
                                 {
                                     if (confirmIndex == 1)
                                     {
-                                        // Back to destination choice
-                                        // Skip look around if already used
-                                        _activeTutorialDialogue?
-                                            .GoToScene(
-                                                _hasLookedAround
-                                                    ? "intro_look_around_reveal"
-                                                    : "intro_mountain_edge_arrival");
+                                        NavigationManager.Instance
+                                            .GenerateOptions();
                                         return;
                                     }
-
-                                    // Confirmed — apply effect
                                     onConfirm(effect);
                                 });
                         });

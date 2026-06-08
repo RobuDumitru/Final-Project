@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Threading;
-using LostInAForgottenCity.Controls;
 
 namespace LostInAForgottenCity.Engine
 {
@@ -527,13 +526,6 @@ namespace LostInAForgottenCity.Engine
     }
 
     // ── Navigation option ─────────────────────────
-
-    public enum OptionType
-    {
-        LookAround,
-        MoveTo,
-        MoveToLocation
-    }
 
     public class NavigationOption
     {
