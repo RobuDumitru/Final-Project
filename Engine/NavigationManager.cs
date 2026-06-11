@@ -272,6 +272,7 @@ namespace LostInAForgottenCity.Engine
             NavigationOption option,
             MovementType movType)
         {
+            if (option.TargetNodeId == null) return;
             var effect = MovementSystem.Calculate(
                 option.NavState,
                 option.Distance,
@@ -313,6 +314,7 @@ namespace LostInAForgottenCity.Engine
             NavigationOption option,
             MovementType movType)
         {
+            if (option.TargetNodeId == null) return;
             var effect = MovementSystem.Calculate(
                 NavigationState.OnTheRoad,
                 option.Distance,
@@ -350,6 +352,7 @@ namespace LostInAForgottenCity.Engine
         private void ArriveAtLandmark(
             NavigationOption option)
         {
+            if (option.TargetNodeId == null) return;
             string prevLandmark = CurrentLandmarkNodeId;
             CurrentLandmarkNodeId = option.TargetNodeId;
 
@@ -389,6 +392,7 @@ namespace LostInAForgottenCity.Engine
         private void ArriveAtLocation(
             NavigationOption option)
         {
+            if (option.TargetNodeId == null) return;
             CurrentRegionNodeId = option.TargetNodeId;
 
             // Update region map

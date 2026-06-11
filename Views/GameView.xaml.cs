@@ -14,10 +14,11 @@ namespace LostInAForgottenCity.Views
         // ── Fields ───────────────────────────────
         private GameState _state = GameState.Instance;
         private DialogueEngine? _activeTutorialDialogue;
-        private bool _hasLookedAround = false;
         private DispatcherTimer _configuringTimer = new();
         private int _configuringDots = 0;
         private const int MaxConfiguringDots = 5;
+        private bool _ruinsGenerated = false;
+        private bool _palaceGenerated = false;
         private List<(Grid overlay, TextBlock text)> _overlays = new();
 
         private static readonly Dictionary<string, string>
@@ -393,12 +394,10 @@ namespace LostInAForgottenCity.Views
         }
 
         // ── Tutorial start ────────────────────────
-        // ── Tutorial start ────────────────────────
-        public void StartTutorial(string firstSceneId)
-        {
-            GameConsole.ClearConsole();
-            StartConfiguringAnimation();
+        private NavigationManager? _nav;
 
+        private void InitTutorialMaps()
+        {
             foreach (var loc in TutorialData.GetSimplifiedLocations())
                 _state.Engine.Locations[loc.Key] = loc.Value;
             foreach (var item in TutorialData.GetSimplifiedItems())
@@ -406,12 +405,12 @@ namespace LostInAForgottenCity.Views
             foreach (var npc in TutorialData.GetSimplifiedNPCs())
                 _state.Engine.NPCs[npc.Key] = npc.Value;
 
-            _state.Engine.CurrentPlayer.CurrentLocationId = "mountain_edge";
+            _state.Engine.CurrentPlayer.CurrentLocationId =
+                "mountain_edge";
             TimeDisplay.IsDayCounterVisible = false;
 
-            var nav = NavigationManager.Instance;
+            _nav = NavigationManager.Instance;
 
-            // ── Generate maps ─────────────────────────
             var regionMap = MapGenerator.Generate(
                 "unknown_region", "Unknown",
                 GameMapType.Region, MapSize.Small,
@@ -427,42 +426,14 @@ namespace LostInAForgottenCity.Views
                 GameMapType.Location, MapSize.Small,
                 new List<(string, string, string, MapSize)>
                 {
-            ("me_parking_lot",   "Parking Lot",      "🅿", MapSize.Small),
-            ("me_empty_booth",   "Empty Booth",       "🏠", MapSize.Small),
-            ("me_cluster_signs", "Cluster of Signs",  "🪧", MapSize.Small)
+            ("me_parking_lot",   "Parking Lot",     "🅿", MapSize.Small),
+            ("me_empty_booth",   "Empty Booth",     "🏠", MapSize.Small),
+            ("me_cluster_signs", "Cluster of Signs","🪧", MapSize.Small)
                 });
 
-            var ruinsMap = MapGenerator.Generate(
-                "random_ruins", "Random Ruins",
-                GameMapType.Location, MapSize.Small,
-                new List<(string, string, string, MapSize)>
-                {
-            ("rr_intact_house",  "Intact House",           "🏠", MapSize.Small),
-            ("rr_damaged_store", "Damaged Store",          "🏪", MapSize.Small),
-            ("rr_warehouse",     "Warehouse",              "🏭", MapSize.Medium),
-            ("rr_tower",         "Half Collapsed Tower",   "🗼", MapSize.Medium)
-                });
+            _nav.SetRegionMap(regionMap);
+            _nav.AddLocationMap("mountain_edge", mountainEdgeMap);
 
-            var palaceMap = MapGenerator.Generate(
-                "extravagant_palace", "Extravagant Palace",
-                GameMapType.Location, MapSize.Medium,
-                new List<(string, string, string, MapSize)>
-                {
-            ("ep_main_hall",   "Main Hall",    "🏛", MapSize.Large),
-            ("ep_basement",    "Basement",     "⬛", MapSize.Medium),
-            ("ep_storage",     "Storage Room", "📦", MapSize.Small),
-            ("ep_kitchen",     "Kitchen",      "🍳", MapSize.Small),
-            ("ep_bedroom",     "Bedroom",      "🛏", MapSize.Small),
-            ("ep_sturdy_room", "Sturdy Room",  "⌂", MapSize.Medium)
-                });
-
-            // ── Set up NavigationManager ──────────────
-            nav.SetRegionMap(regionMap);
-            nav.AddLocationMap("mountain_edge", mountainEdgeMap);
-            nav.AddLocationMap("random_ruins", ruinsMap);
-            nav.AddLocationMap("extravagant_palace", palaceMap);
-
-            // ── Load maps into panel ──────────────────
             GameMap.LoadMap(mountainEdgeMap,
                 "mountain_edge_map", "Mountain Edge",
                 MapType.Location);
@@ -473,7 +444,7 @@ namespace LostInAForgottenCity.Views
                 Title = "Random Ruins",
                 Type = MapType.Location,
                 IsUnlocked = false,
-                Map = ruinsMap
+                Map = null
             });
 
             GameMap.AddAvailableMap(new MapTab
@@ -482,7 +453,7 @@ namespace LostInAForgottenCity.Views
                 Title = "Extravagant Palace",
                 Type = MapType.Location,
                 IsUnlocked = false,
-                Map = palaceMap
+                Map = null
             });
 
             GameMap.AddAvailableMap(new MapTab
@@ -494,22 +465,21 @@ namespace LostInAForgottenCity.Views
                 Map = regionMap
             });
 
-            // ── Wire NavigationManager events ─────────
-            nav.OnConsoleMessage += (text, type) =>
+            // Wire NavigationManager events
+            _nav.OnConsoleMessage += (text, type) =>
                 Dispatcher.Invoke(() =>
                     GameConsole.AddText(text, type));
 
-            nav.OnOptionsGenerated += options =>
+            _nav.OnOptionsGenerated += options =>
                 Dispatcher.Invoke(() =>
-                    ShowNavigationOptions(options, nav));
+                    ShowNavigationOptions(options, _nav));
 
-            nav.OnStatEffect += effect =>
+            _nav.OnStatEffect += effect =>
                 Dispatcher.Invoke(() => ApplyStatEffect(effect));
 
-            nav.OnMapChanged += map =>
+            _nav.OnMapChanged += map =>
                 Dispatcher.Invoke(() =>
                 {
-                    // Find which tab this map belongs to
                     string tabId = map.Id switch
                     {
                         "unknown_region" => "unknown_region",
@@ -519,13 +489,66 @@ namespace LostInAForgottenCity.Views
                         _ => map.Id
                     };
                     GameMap.SwitchToTab(tabId);
+                    GameMap.MarkDirty();
                 });
 
-            nav.OnNarrativeTrigger += triggerId =>
-                Dispatcher.Invoke(() =>
-                    HandleTutorialTrigger(triggerId));
+            _nav.OnTravelStart += () =>
+                Dispatcher.Invoke(() => GameMap.MarkDirty());
 
-            // ── Wire dialogue engine ──────────────────
+            _nav.OnNarrativeTrigger += triggerId =>
+                Dispatcher.Invoke(() =>
+                {
+                    if (triggerId == "arrive_random_ruins" &&
+                        !_ruinsGenerated)
+                    {
+                        var ruinsMap = MapGenerator.Generate(
+                            "random_ruins", "Random Ruins",
+                            GameMapType.Location, MapSize.Small,
+                            new List<(string, string, string, MapSize)>
+                            {
+                        ("rr_intact_house",  "Intact House",         "🏠", MapSize.Small),
+                        ("rr_damaged_store", "Damaged Store",        "🏪", MapSize.Small),
+                        ("rr_warehouse",     "Warehouse",            "🏭", MapSize.Medium),
+                        ("rr_tower",         "Half Collapsed Tower", "🗼", MapSize.Medium)
+                            });
+
+                        _nav.AddLocationMap("random_ruins", ruinsMap);
+                        _ruinsGenerated = true;
+
+                        var tab = GameMap.GetAvailableTab(
+                            "random_ruins_map");
+                        if (tab != null) tab.Map = ruinsMap;
+                    }
+                    else if (triggerId == "arrive_extravagant_palace" &&
+                             !_palaceGenerated)
+                    {
+                        var palaceMap = MapGenerator.Generate(
+                            "extravagant_palace", "Extravagant Palace",
+                            GameMapType.Location, MapSize.Medium,
+                            new List<(string, string, string, MapSize)>
+                            {
+                        ("ep_main_hall",   "Main Hall",    "🏛", MapSize.Large),
+                        ("ep_basement",    "Basement",     "⬛", MapSize.Medium),
+                        ("ep_storage",     "Storage Room", "📦", MapSize.Small),
+                        ("ep_kitchen",     "Kitchen",      "🍳", MapSize.Small),
+                        ("ep_bedroom",     "Bedroom",      "🛏", MapSize.Small),
+                        ("ep_sturdy_room", "Sturdy Room",  "⌂", MapSize.Medium)
+                            });
+
+                        _nav.AddLocationMap("extravagant_palace", palaceMap);
+                        _palaceGenerated = true;
+
+                        var tab = GameMap.GetAvailableTab(
+                            "extravagant_palace_map");
+                        if (tab != null) tab.Map = palaceMap;
+                    }
+
+                    HandleTutorialTrigger(triggerId);
+                });
+        }
+
+        private void StartTutorialDialogue(string firstSceneId)
+        {
             var dialogue = new DialogueEngine();
             dialogue.LoadDialogue(DialogueData.GetTutorialDialogue());
             _activeTutorialDialogue = dialogue;
@@ -601,9 +624,13 @@ namespace LostInAForgottenCity.Views
 
                         switch (nextId)
                         {
-                            // Opening ends — hand off to NavigationManager
                             case "intro_mountain_edge":
-                                OnOpeningComplete(nav);
+                                // Mark opening as completed
+                                if (!_state.Player.CompletedQuests
+                                    .Contains("intro_opening"))
+                                    _state.Player.CompletedQuests
+                                        .Add("intro_opening");
+                                OnOpeningComplete(_nav!);
                                 break;
 
                             default:
@@ -639,6 +666,47 @@ namespace LostInAForgottenCity.Views
             dialogue.StartScene(firstSceneId);
         }
 
+        // Updated StartTutorial - now just orchestrates
+        public void StartTutorial(string firstSceneId)
+        {
+            GameConsole.ClearConsole();
+            StartConfiguringAnimation();
+
+            InitTutorialMaps();
+
+            bool openingCompleted = _state.Player.CompletedQuests
+                .Contains("intro_opening");
+
+            if (openingCompleted)
+            {
+                GameConsole.AddText(
+                    "You have already witnessed this vision.",
+                    TextType.Description,
+                    onComplete: () =>
+                    {
+                        GameConsole.ShowOptions(
+                            new List<string>
+                            {
+                        "Watch it again.",
+                        "Skip to Mountain Edge."
+                            },
+                            index =>
+                            {
+                                if (index == 1)
+                                {
+                                    RevealPanel(UIPanel.Map);
+                                    OnOpeningComplete(_nav!);
+                                    return;
+                                }
+                                StartTutorialDialogue(firstSceneId);
+                            });
+                    });
+                return;
+            }
+
+            StartTutorialDialogue(firstSceneId);
+        }
+
         // ── Opening complete → hand off to NavigationManager ──
         private void OnOpeningComplete(NavigationManager nav)
         {
@@ -650,7 +718,7 @@ namespace LostInAForgottenCity.Views
         }
 
         // ── Apply stat effect ─────────────────────────
-        private void ApplyStatEffect(Engine.StatEffect effect)
+        private void ApplyStatEffect(StatEffect effect)
         {
             if (effect.Stamina != 0)
                 _state.ModifyStamina(effect.Stamina);
@@ -672,7 +740,7 @@ namespace LostInAForgottenCity.Views
 
         // ── Show navigation options from NavigationManager ──
         private void ShowNavigationOptions(
-            List<Engine.NavigationOption> options,
+            List<NavigationOption> options,
             NavigationManager nav)
         {
             var labels = options.Select(o => o.Label).ToList();
@@ -681,7 +749,7 @@ namespace LostInAForgottenCity.Views
             {
                 var option = options[index];
 
-                if (option.Type == Engine.OptionType.LookAround)
+                if (option.Type == OptionType.LookAround)
                 {
                     nav.ExecuteLookAround();
                     return;
@@ -694,7 +762,7 @@ namespace LostInAForgottenCity.Views
 
         // ── Movement type choice ──────────────────────
         private void ShowMovementTypeChoice(
-            Engine.NavigationOption option,
+            NavigationOption option,
             NavigationManager nav)
         {
             GameConsole.ShowOptions(
@@ -708,17 +776,17 @@ namespace LostInAForgottenCity.Views
                 {
                     var movType = movIndex switch
                     {
-                        0 => Engine.MovementType.Carefully,
-                        1 => Engine.MovementType.Normally,
-                        _ => Engine.MovementType.Quickly
+                        0 => MovementType.Carefully,
+                        1 => MovementType.Normally,
+                        _ => MovementType.Quickly
                     };
 
-                    var effect = Engine.MovementSystem.Calculate(
+                    var effect = MovementSystem.Calculate(
                         option.NavState,
                         option.Distance,
                         movType);
 
-                    string confirmText = Engine.MovementSystem
+                    string confirmText = MovementSystem
                         .GetConfirmationText(
                             option.TargetNodeName ?? "",
                             option.NavState,
@@ -770,104 +838,6 @@ namespace LostInAForgottenCity.Views
                     GameMap.SwitchToTab("extravagant_palace_map");
                     break;
             }
-        }
-
-        // ── Movement flow (kept for dialogue-driven scenes) ──
-        private void ShowMovementFlow(
-            string destinationName,
-            string nextSceneId,
-            Engine.TravelDistance distance,
-            Engine.NavigationState navState,
-            Action<Engine.StatEffect> onConfirm)
-        {
-            GameConsole.ShowOptions(
-                new List<string>
-                {
-            "Move carefully.",
-            "Move normally.",
-            "Move quickly."
-                },
-                movIndex =>
-                {
-                    var movType = movIndex switch
-                    {
-                        0 => Engine.MovementType.Carefully,
-                        1 => Engine.MovementType.Normally,
-                        _ => Engine.MovementType.Quickly
-                    };
-
-                    var effect = Engine.MovementSystem.Calculate(
-                        navState, distance, movType);
-
-                    string confirmText = Engine.MovementSystem
-                        .GetConfirmationText(
-                            destinationName,
-                            navState,
-                            distance,
-                            movType);
-
-                    GameConsole.AddText(confirmText,
-                        TextType.Gameline,
-                        onComplete: () =>
-                        {
-                            GameConsole.ShowOptions(
-                                new List<string>
-                                {
-                            "Yes.",
-                            "Let me think."
-                                },
-                                confirmIndex =>
-                                {
-                                    if (confirmIndex == 1)
-                                    {
-                                        NavigationManager.Instance
-                                            .GenerateOptions();
-                                        return;
-                                    }
-                                    onConfirm(effect);
-                                });
-                        });
-                });
-        }
-
-        // ── Test console ──────────────────────────
-        private void LoadTestConsole()
-        {
-            GameConsole.AddText(
-                "You stand at the edge of the city. The fog is " +
-                "thick today, swallowing the outlines of the " +
-                "buildings ahead. Somewhere in the distance, " +
-                "something moves.",
-                TextType.Description,
-                onComplete: () =>
-                {
-                    GameConsole.AddText(
-                        "Stay close to the walls and don't make noise.",
-                        TextType.Gameline);
-                    GameConsole.AddSeparator();
-                    GameConsole.ShowOptions(
-                        new List<string>
-                        {
-                            "Move toward the city",
-                            "Examine the surroundings",
-                            "Check your belongings",
-                            "Stay and listen"
-                        },
-                        index =>
-                        {
-                            string response = index switch
-                            {
-                                0 => "You take your first steps into the fog...",
-                                1 => "You scan the area carefully.",
-                                2 => "You check what you're carrying.",
-                                _ => "You stand still and listen."
-                            };
-                            _state.AddToHistory(response);
-                            GameConsole.AddText(response, TextType.Description);
-                            _state.ModifyStamina(-1);
-                            _state.AdvanceTime(15);
-                        });
-                });
         }
     }
 }

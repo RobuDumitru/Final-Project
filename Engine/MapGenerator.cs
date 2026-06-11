@@ -329,7 +329,7 @@ namespace LostInAForgottenCity.Engine
                         if (seg.Type == SegmentType.Connection)
                         {
                             // Junction point
-                            map.Grid[px, py].IsJunction = true;
+                            map.SetJunctionSegment(px, py, true);
                         }
                         else if (seg.Type == SegmentType.Empty)
                         {
@@ -742,7 +742,7 @@ namespace LostInAForgottenCity.Engine
                              x <= oldNode.Right; x++)
                         for (int y = oldNode.Top;
                                  y <= oldNode.Bottom; y++)
-                            map.Grid[x, y].IsPlayerHere = false;
+                            map.SetPlayerSegment(x, y, false);
                 }
             }
 
@@ -759,8 +759,7 @@ namespace LostInAForgottenCity.Engine
                 : node.State;
 
             // Mark center segment as player position
-            map.Grid[node.CenterX, node.CenterY]
-                .IsPlayerHere = true;
+            map.SetPlayerSegment(node.CenterX, node.CenterY, true);
             map.PlayerPosition =
                 (node.CenterX, node.CenterY);
         }

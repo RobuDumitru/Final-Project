@@ -21,9 +21,9 @@ namespace LostInAForgottenCity.Engine
         public MapSize Size { get; set; } = MapSize.Medium;
         public int SegmentSize => Size switch
         {
-            MapSize.Small  => 3,
+            MapSize.Small => 3,
             MapSize.Medium => 5,
-            MapSize.Large  => 10,
+            MapSize.Large => 10,
             _ => 5
         };
         public int GridX { get; set; }
@@ -34,9 +34,9 @@ namespace LostInAForgottenCity.Engine
         public bool PlayerVisitedBefore { get; set; } = false;
         public GeneratedMap? ChildMap { get; set; } = null;
 
-        public int Left   => GridX;
-        public int Top    => GridY;
-        public int Right  => GridX + SegmentSize - 1;
+        public int Left => GridX;
+        public int Top => GridY;
+        public int Right => GridX + SegmentSize - 1;
         public int Bottom => GridY + SegmentSize - 1;
         public int CenterX => GridX + SegmentSize / 2;
         public int CenterY => GridY + SegmentSize / 2;
@@ -50,11 +50,11 @@ namespace LostInAForgottenCity.Engine
         public int SegmentCount { get; set; } = 0;
         public TravelDistance Distance => SegmentCount switch
         {
-            <= 5  => TravelDistance.Immediate,
+            <= 5 => TravelDistance.Immediate,
             <= 12 => TravelDistance.Close,
             <= 20 => TravelDistance.Near,
             <= 30 => TravelDistance.Far,
-            _     => TravelDistance.Distant
+            _ => TravelDistance.Distant
         };
         public List<(int x, int y)> Path { get; set; } = new();
         public bool IsDiscovered { get; set; } = false;
@@ -90,30 +90,19 @@ namespace LostInAForgottenCity.Engine
         public GameMapType Type { get; set; }
         public MapSize Size { get; set; } = MapSize.Medium;
 
-        public int Width => Type switch
-        {
-            GameMapType.Region when Id == "unknown_region" => 3000,
-            GameMapType.Region => 5000,
-            GameMapType.Location => Size switch
-            {
-                MapSize.Small  => 500,
-                MapSize.Medium => 1000,
-                MapSize.Large  => 2000,
-                _ => 1000
-            },
-            GameMapType.Landmark => Size switch
-            {
-                MapSize.Small  => 50,
-                MapSize.Medium => 100,
-                MapSize.Large  => 300,
-                _ => 100
-            },
-            _ => 1000
-        };
+        public int Width => 100;
         public int Height => Width;
 
-        public MapSegment[,] Grid { get; private set; }
-            = new MapSegment[0, 0];
+        public byte[,] GridTypes { get; private set; }
+            = new byte[0, 0];
+        public Dictionary<(int, int), string> NodeSegments { get; }
+            = new();
+        public Dictionary<(int, int), string> ConnectionSegments { get; }
+            = new();
+        public HashSet<(int, int)> PlayerSegments { get; }
+            = new();
+        public HashSet<(int, int)> JunctionSegments { get; }
+            = new();
         public List<GameMapNode> Nodes { get; set; } = new();
         public List<GameMapConnection> Connections { get; set; } = new();
         public List<BorderEntryPoint> BorderEntries { get; set; } = new();
@@ -129,10 +118,12 @@ namespace LostInAForgottenCity.Engine
 
         public void InitializeGrid()
         {
-            Grid = new MapSegment[Width, Height];
-            for (int x = 0; x < Width; x++)
-                for (int y = 0; y < Height; y++)
-                    Grid[x, y] = new MapSegment();
+            GridTypes = new byte[Width, Height];
+            NodeSegments.Clear();
+            ConnectionSegments.Clear();
+            PlayerSegments.Clear();
+            JunctionSegments.Clear();
+
         }
 
         public bool IsInBounds(int x, int y)
@@ -149,17 +140,33 @@ namespace LostInAForgottenCity.Engine
                 for (int cy = minY; cy < maxY; cy++)
                 {
                     if (!IsInBounds(cx, cy)) continue;
-                    var seg = Grid[cx, cy];
-                    if (seg.Type == SegmentType.Node ||
-                        seg.Type == SegmentType.Border ||
-                        seg.Type == SegmentType.Restriction)
+                    var t = (SegmentType)GridTypes[cx, cy];
+                    if (t == SegmentType.Node ||
+                        t == SegmentType.Border ||
+                        t == SegmentType.Restriction)
                         return false;
                 }
             return true;
         }
 
         public MapSegment GetSegment(int x, int y)
-            => IsInBounds(x, y) ? Grid[x, y] : new MapSegment();
+        {
+            if (!IsInBounds(x, y)) return new MapSegment();
+
+            var seg = new MapSegment
+            {
+                Type = (SegmentType)GridTypes[x, y]
+            };
+
+            if (NodeSegments.TryGetValue((x, y), out var nodeId))
+                seg.NodeId = nodeId;
+            if (ConnectionSegments.TryGetValue((x, y), out var connId))
+                seg.ConnectionId = connId;
+
+            seg.IsPlayerHere = PlayerSegments.Contains((x, y));
+            seg.IsJunction = JunctionSegments.Contains((x, y));
+            return seg;
+        }
 
         public void SetSegment(int x, int y,
             SegmentType type, string? nodeId = null,
@@ -167,11 +174,37 @@ namespace LostInAForgottenCity.Engine
             Direction dir = Direction.None)
         {
             if (!IsInBounds(x, y)) return;
-            Grid[x, y].Type = type;
-            if (nodeId != null) Grid[x, y].NodeId = nodeId;
-            if (connectionId != null)
-                Grid[x, y].ConnectionId = connectionId;
-            Grid[x, y].ConnectionDirection = dir;
+
+            GridTypes[x, y] = (byte)type;
+
+            if (type == SegmentType.Node && nodeId != null)
+                NodeSegments[(x, y)] = nodeId;
+            else
+                NodeSegments.Remove((x, y));
+
+            if (type == SegmentType.Connection &&
+                connectionId != null)
+                ConnectionSegments[(x, y)] = connectionId;
+            else if (type != SegmentType.Connection)
+                ConnectionSegments.Remove((x, y));
+        }
+
+        public void SetPlayerSegment(int x, int y, bool isPresent)
+        {
+            if (!IsInBounds(x, y)) return;
+            if (isPresent)
+                PlayerSegments.Add((x, y));
+            else
+                PlayerSegments.Remove((x, y));
+        }
+
+        public void SetJunctionSegment(int x, int y, bool isJunction)
+        {
+            if (!IsInBounds(x, y)) return;
+            if (isJunction)
+                JunctionSegments.Add((x, y));
+            else
+                JunctionSegments.Remove((x, y));
         }
 
         public GameMapNode? GetNode(string id)

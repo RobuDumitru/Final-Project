@@ -89,7 +89,7 @@ namespace LostInAForgottenCity.Controls
             if (!map.IsInBounds(sx, sy))
                 return ColorEmpty;
 
-            var seg = map.Grid[sx, sy];
+            var seg = map.GetSegment(sx, sy);
 
             if (seg.IsPlayerHere)
                 return ColorPlayer;
@@ -285,38 +285,6 @@ namespace LostInAForgottenCity.Controls
                 });
             }
 
-            // Draw compass
-            DrawCompass(canvas, displayWidth, displayHeight);
-        }
-
-        private static void DrawCompass(Canvas canvas,
-            int w, int h)
-        {
-            var dirs = new[]
-            {
-                ("N", w / 2.0,  8.0),
-                ("S", w / 2.0,  h - 8.0),
-                ("W", 8.0,       h / 2.0),
-                ("E", w - 8.0,   h / 2.0)
-            };
-
-            foreach (var (label, x, y) in dirs)
-            {
-                var tb = new TextBlock
-                {
-                    Text = label,
-                    FontFamily = new FontFamily(
-                        "Courier New"),
-                    FontSize = 10,
-                    Foreground = new SolidColorBrush(
-                        Color.FromRgb(0x4a, 0x6a, 0x4a)),
-                    FontWeight = FontWeights.SemiBold,
-                    IsHitTestVisible = false
-                };
-                Canvas.SetLeft(tb, x - 5);
-                Canvas.SetTop(tb, y - 7);
-                canvas.Children.Add(tb);
-            }
         }
 
         // ── Render travel animation dot ───────────

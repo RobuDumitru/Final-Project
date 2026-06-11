@@ -16,6 +16,9 @@ namespace LostInAForgottenCity.Controls
         // ── Fields ────────────────────────────────
         private GeneratedMap? _activeMap = null;
         private bool _lookAroundActive = false;
+        private double _bitmapOffsetX = 0;
+        private double _bitmapOffsetY = 0;
+        private bool _centerOnNextRender = false;
 
         // Tabs
         private List<MapTab> _openTabs = new();
@@ -31,6 +34,8 @@ namespace LostInAForgottenCity.Controls
 
         // Legend
         private bool _legendExpanded = true;
+
+        private bool _isDirty = true;
 
         // Render timer
         private DispatcherTimer _renderTimer = new();
@@ -49,13 +54,10 @@ namespace LostInAForgottenCity.Controls
 
         // ── Public API ────────────────────────────
 
-        public void LoadMap(GeneratedMap map,
-            string tabId, string tabTitle,
-            MapType mapType)
+        public void LoadMap(GeneratedMap map, string tabId, string tabTitle, MapType mapType)
         {
             _activeMap = map;
 
-            // Update or add tab
             var existing = _openTabs.FirstOrDefault(
                 t => t.Id == tabId);
             if (existing == null)
@@ -87,9 +89,10 @@ namespace LostInAForgottenCity.Controls
 
             SectionTitle.Text = tabTitle.ToUpper();
             RefreshTabs();
-            Redraw();
+            MarkDirty();
             _renderTimer.Start();
         }
+
 
         public void SetLookAroundActive(bool active)
         {
@@ -114,7 +117,7 @@ namespace LostInAForgottenCity.Controls
                 _activeTab = tab;
                 SectionTitle.Text = tab.Title.ToUpper();
                 RefreshTabs();
-                Redraw();
+                MarkDirty();
             }
         }
 
@@ -135,14 +138,12 @@ namespace LostInAForgottenCity.Controls
                 SectionTitle.Text =
                     existing.Title.ToUpper();
                 RefreshTabs();
-                Redraw();
+                MarkDirty();
                 return;
             }
 
-            var available = _availableTabs.FirstOrDefault(
-                t => t.Id == tabId);
-            if (available != null &&
-                _openTabs.Count < 5)
+            var available = _availableTabs.FirstOrDefault(t => t.Id == tabId);
+            if (available != null && _openTabs.Count < 5)
             {
                 _openTabs.Add(available);
                 _activeTab = available;
@@ -150,37 +151,57 @@ namespace LostInAForgottenCity.Controls
                 SectionTitle.Text =
                     available.Title.ToUpper();
                 RefreshTabs();
-                Redraw();
+                MarkDirty();
             }
         }
 
         // ── Rendering ─────────────────────────────
+        public void MarkDirty()
+        {
+            _isDirty = true;
+            Redraw();
+            if (!_renderTimer.IsEnabled)
+                _renderTimer.Start();
+        }
 
         private void Redraw()
         {
+            if (!_isDirty) return;
             if (_activeMap == null) return;
 
             int w = (int)MapBorder.ActualWidth;
             int h = (int)MapBorder.ActualHeight;
             if (w <= 0 || h <= 0) return;
 
-            // Render bitmap
-            var bitmap = MapGridRenderer.RenderToBitmap(
-                _activeMap, w, h);
+            var bitmap = MapGridRenderer.RenderToBitmap(_activeMap, w, h);
+
+            _bitmapOffsetX = (w - bitmap.PixelWidth) / 2.0;
+            _bitmapOffsetY = (h - bitmap.PixelHeight) / 2.0;
+
+            // Centrează harta la primul load al unui tab nou
+            if (_centerOnNextRender)
+            {
+                MapTranslate.X = _bitmapOffsetX;
+                MapTranslate.Y = _bitmapOffsetY;
+                MapScale.ScaleX = 1.0;
+                MapScale.ScaleY = 1.0;
+                _centerOnNextRender = false;
+            }
+
             MapImage.Source = bitmap;
             MapImage.Width = bitmap.PixelWidth;
             MapImage.Height = bitmap.PixelHeight;
+            MapImage.Margin = new Thickness(0);
 
-            // Render overlays
             OverlayCanvas.Width = w;
             OverlayCanvas.Height = h;
 
             MapGridRenderer.RenderOverlays(
                 OverlayCanvas, _activeMap, w, h,
                 MapScale.ScaleX,
-                MapTranslate.X, MapTranslate.Y);
+                MapTranslate.X,
+                MapTranslate.Y);
 
-            // Render travel dots
             if (_activeMap != null)
                 foreach (var conn in _activeMap.Connections
                     .Where(c => c.IsPlayerTravelling))
@@ -188,10 +209,16 @@ namespace LostInAForgottenCity.Controls
                         OverlayCanvas, _activeMap, conn,
                         w, h, MapScale.ScaleX,
                         MapTranslate.X, MapTranslate.Y);
+
+            _isDirty = false;
+
+            bool anyTravelling = _activeMap?.Connections
+                .Any(c => c.IsPlayerTravelling) ?? false;
+            if (!anyTravelling)
+                _renderTimer.Stop();
         }
 
-        private void MapBorder_SizeChanged(object sender,
-            SizeChangedEventArgs e) => Redraw();
+        private void MapBorder_SizeChanged(object sender, SizeChangedEventArgs e) => MarkDirty();
 
         // ── Hover tooltip ─────────────────────────
 
@@ -218,7 +245,7 @@ namespace LostInAForgottenCity.Controls
                 return;
             }
 
-            var seg = _activeMap.Grid[sx, sy];
+            var seg = _activeMap.GetSegment(sx, sy);
             if (seg.Type != SegmentType.Node ||
                 seg.NodeId == null)
             {
@@ -322,9 +349,9 @@ namespace LostInAForgottenCity.Controls
         private string GetRiskColor(RiskLevel risk)
             => risk switch
             {
-                RiskLevel.Low    => "#7aaa60",
+                RiskLevel.Low => "#7aaa60",
                 RiskLevel.Medium => "#c8a840",
-                RiskLevel.High   => "#cc4040",
+                RiskLevel.High => "#cc4040",
                 _ => "#7aaa60"
             };
 
@@ -423,7 +450,7 @@ namespace LostInAForgottenCity.Controls
                         _activeMap = _activeTab?.Map;
                     }
                     RefreshTabs();
-                    Redraw();
+                    MarkDirty();
                 }
             }
         }
@@ -508,7 +535,7 @@ namespace LostInAForgottenCity.Controls
                     SectionTitle.Text =
                         tab.Title.ToUpper();
                     RefreshTabs();
-                    Redraw();
+                    MarkDirty();
                 }
             }
         }
@@ -541,15 +568,13 @@ namespace LostInAForgottenCity.Controls
             }
         }
 
-        private void MapBorder_MouseMove(object sender,
-            MouseEventArgs e)
+        private void MapBorder_MouseMove(object sender, MouseEventArgs e)
         {
             if (!_isDragging) return;
             var pos = e.GetPosition((UIElement)sender);
-            MapTranslate.X = _dragOriginX +
-                (pos.X - _dragStart.X);
-            MapTranslate.Y = _dragOriginY +
-                (pos.Y - _dragStart.Y);
+            MapTranslate.X = _dragOriginX + (pos.X - _dragStart.X);
+            MapTranslate.Y = _dragOriginY + (pos.Y - _dragStart.Y);
+            MarkDirty(); // ← lipsea
         }
 
         private void MapBorder_MouseUp(object sender,
@@ -577,6 +602,7 @@ namespace LostInAForgottenCity.Controls
 
             MapScale.ScaleX = newScale;
             MapScale.ScaleY = newScale;
+            MarkDirty(); // ← lipsea
         }
     }
 
