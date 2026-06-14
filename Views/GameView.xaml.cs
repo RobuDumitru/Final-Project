@@ -411,6 +411,8 @@ namespace LostInAForgottenCity.Views
 
             _nav = NavigationManager.Instance;
 
+            var random = new Random();
+
             var regionMap = MapGenerator.Generate(
                 "unknown_region", "Unknown",
                 GameMapType.Region, MapSize.Small,
@@ -430,6 +432,21 @@ namespace LostInAForgottenCity.Views
             ("me_empty_booth",   "Empty Booth",     "🏠", MapSize.Small),
             ("me_cluster_signs", "Cluster of Signs","🪧", MapSize.Small)
                 });
+
+            MapGenerator.AddBorderLandmarks(
+                mountainEdgeMap, regionMap,
+                "mountain_edge", random);
+
+            // ── Add "Path to Nowhere" ─────────────────────
+            // Special border landmark — direction hiker arrived from
+            // South side, connects to Parking Lot, no exit
+            MapGenerator.AddSpecialBorderLandmark(
+                mountainEdgeMap,
+                id: "border_path_to_nowhere",
+                name: "Path to Nowhere",
+                direction: Direction.South,
+                connectToNodeId: "me_parking_lot",
+                random);
 
             _nav.SetRegionMap(regionMap);
             _nav.AddLocationMap("mountain_edge", mountainEdgeMap);
@@ -512,6 +529,10 @@ namespace LostInAForgottenCity.Views
                         ("rr_tower",         "Half Collapsed Tower", "🗼", MapSize.Medium)
                             });
 
+                        MapGenerator.AddBorderLandmarks(
+                            ruinsMap, regionMap,
+                            "random_ruins", random);
+
                         _nav.AddLocationMap("random_ruins", ruinsMap);
                         _ruinsGenerated = true;
 
@@ -534,6 +555,10 @@ namespace LostInAForgottenCity.Views
                         ("ep_bedroom",     "Bedroom",      "🛏", MapSize.Small),
                         ("ep_sturdy_room", "Sturdy Room",  "⌂", MapSize.Medium)
                             });
+
+                        MapGenerator.AddBorderLandmarks(
+                            palaceMap, regionMap,
+                            "extravagant_palace", random);
 
                         _nav.AddLocationMap("extravagant_palace", palaceMap);
                         _palaceGenerated = true;

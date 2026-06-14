@@ -89,6 +89,7 @@ namespace LostInAForgottenCity.Controls
 
             SectionTitle.Text = tabTitle.ToUpper();
             RefreshTabs();
+            _centerOnNextRender = true;
             MarkDirty();
             _renderTimer.Start();
         }
@@ -138,6 +139,7 @@ namespace LostInAForgottenCity.Controls
                 SectionTitle.Text =
                     existing.Title.ToUpper();
                 RefreshTabs();
+                _centerOnNextRender = true;
                 MarkDirty();
                 return;
             }
@@ -151,6 +153,7 @@ namespace LostInAForgottenCity.Controls
                 SectionTitle.Text =
                     available.Title.ToUpper();
                 RefreshTabs();
+                _centerOnNextRender = true;
                 MarkDirty();
             }
         }

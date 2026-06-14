@@ -33,13 +33,14 @@ namespace LostInAForgottenCity.Engine
         public bool HasSafeRoom { get; set; } = false;
         public bool PlayerVisitedBefore { get; set; } = false;
         public GeneratedMap? ChildMap { get; set; } = null;
-
         public int Left => GridX;
         public int Top => GridY;
         public int Right => GridX + SegmentSize - 1;
         public int Bottom => GridY + SegmentSize - 1;
         public int CenterX => GridX + SegmentSize / 2;
         public int CenterY => GridY + SegmentSize / 2;
+        public bool IsBorderLandmark { get; set; } = false;
+        public string? BorderTargetRegionNodeId { get; set; } = null;
     }
 
     public class GameMapConnection

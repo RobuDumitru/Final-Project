@@ -102,9 +102,6 @@ namespace LostInAForgottenCity.Engine
             // Step 4: Route connections between nodes
             RouteAllConnections(map, random);
 
-            // Step 5: Route border connections
-            RouteBorderConnections(map);
-
             // Step 6: Ensure all nodes accessible
             bool accessible = EnsureConnectivity(
                 map, nodeInfos, random);
@@ -358,9 +355,7 @@ namespace LostInAForgottenCity.Engine
             public PathNode? Parent { get; set; }
         }
 
-        private static List<(int, int)>? FindPath(
-    GeneratedMap map,
-    GameMapNode from, GameMapNode to)
+        private static List<(int, int)>? FindPath(GeneratedMap map, GameMapNode from, GameMapNode to)
         {
             var goals = GetNodeEdgeSet(to);
             var starts = GetNodeEdgePoints(map, from);
@@ -581,88 +576,6 @@ namespace LostInAForgottenCity.Engine
             return path;
         }
 
-        // ── Step 5: Border connections ────────────
-
-        private static void RouteBorderConnections(
-            GeneratedMap map)
-        {
-            // Each side of border tries to connect
-            // to nearest node on that side
-            var sides = new[]
-            {
-                Direction.North,
-                Direction.South,
-                Direction.East,
-                Direction.West
-            };
-
-            foreach (var side in sides)
-            {
-                // Find nodes closest to this border side
-                var sortedNodes = map.Nodes
-                    .OrderBy(n => side switch
-                    {
-                        Direction.North => n.Top,
-                        Direction.South => map.Height - n.Bottom,
-                        Direction.West => n.Left,
-                        Direction.East => map.Width - n.Right,
-                        _ => 0
-                    })
-                    .ToList();
-
-                foreach (var node in sortedNodes)
-                {
-                    // Find entry point on this border side
-                    (int bx, int by) = side switch
-                    {
-                        Direction.North =>
-                            (node.CenterX, 0),
-                        Direction.South =>
-                            (node.CenterX, map.Height - 1),
-                        Direction.West =>
-                            (0, node.CenterY),
-                        Direction.East =>
-                            (map.Width - 1, node.CenterY),
-                        _ => (0, 0)
-                    };
-
-                    // Route path from border to node
-                    var goals = GetNodeEdgeSet(node);
-                    var path = AStarFind(map,
-                        (bx, by),
-                        node.CenterX, node.CenterY,
-                        goals);
-
-                    if (path == null) continue;
-
-                    // Mark entry point
-                    var entry = new BorderEntryPoint
-                    {
-                        GridX = bx,
-                        GridY = by,
-                        ArrivalDirection = side,
-                        ConnectedNodeId = node.Id
-                    };
-                    map.BorderEntries.Add(entry);
-
-                    // Mark path segments
-                    foreach (var (px, py) in path)
-                    {
-                        if (map.GetSegment(px, py).Type
-                            == SegmentType.Empty ||
-                            map.GetSegment(px, py).Type
-                            == SegmentType.Border)
-                        {
-                            map.SetSegment(px, py,
-                                SegmentType.Connection,
-                                connectionId:
-                                $"border_{side}_{node.Id}");
-                        }
-                    }
-                }
-            }
-        }
-
         // ── Step 6: Ensure connectivity ───────────
 
         private static bool EnsureConnectivity(
@@ -800,6 +713,254 @@ namespace LostInAForgottenCity.Engine
                 node.Risk = (RiskLevel)random.Next(3);
 
             map.LastRiskUpdateDay = currentDay;
+        }
+
+        // ── Border landmarks ──────────────────────────
+
+        public static void AddBorderLandmarks(
+            GeneratedMap locationMap,
+            GeneratedMap regionMap,
+            string locationRegionNodeId,
+            Random random)
+        {
+            var regionNode = regionMap.GetNode(
+                locationRegionNodeId);
+            if (regionNode == null) return;
+
+            var connections = regionMap.GetNodeConnections(
+                locationRegionNodeId);
+
+            foreach (var conn in connections)
+            {
+                string neighborId =
+                    conn.FromNodeId == locationRegionNodeId
+                    ? conn.ToNodeId : conn.FromNodeId;
+
+                var neighborNode = regionMap.GetNode(neighborId);
+                if (neighborNode == null) continue;
+
+                // Use actual region node positions
+                // to determine which side to place on
+                Direction dir = CalculateDirection(
+                    regionNode.CenterX, regionNode.CenterY,
+                    neighborNode.CenterX, neighborNode.CenterY);
+
+                string borderId =
+                    $"border_{locationRegionNodeId}_to_{neighborId}";
+                string borderName =
+                    $"Road towards {neighborNode.Name}";
+
+                var borderNode = new GameMapNode
+                {
+                    Id = borderId,
+                    Name = borderName,
+                    Icon = "🛤",
+                    Size = MapSize.Small,
+                    IsBorderLandmark = true,
+                    BorderTargetRegionNodeId = neighborId,
+                    MapType = GameMapType.Location,
+                    State = NodeState.Discovered
+                };
+
+                bool placed = PlaceBorderLandmarkNode(
+                    locationMap, borderNode, dir, random);
+                if (!placed) continue;
+
+                for (int nx = borderNode.Left;
+                         nx <= borderNode.Right; nx++)
+                    for (int ny = borderNode.Top;
+                             ny <= borderNode.Bottom; ny++)
+                        locationMap.SetSegment(nx, ny,
+                            SegmentType.Node, borderId);
+
+                locationMap.Nodes.Add(borderNode);
+
+                var nearest = FindNearestNormalLandmark(
+                    locationMap, borderNode);
+                if (nearest == null) continue;
+
+                var path = FindPath(locationMap, borderNode, nearest);
+                if (path == null) continue;
+
+                var connId = $"conn_{borderId}_{nearest.Id}";
+                var newConn = new GameMapConnection
+                {
+                    Id = connId,
+                    FromNodeId = borderId,
+                    ToNodeId = nearest.Id,
+                    Path = path,
+                    SegmentCount = path.Count
+                };
+
+                foreach (var (px, py) in path)
+                {
+                    var seg = locationMap.GetSegment(px, py);
+                    if (seg.Type == SegmentType.Connection)
+                        locationMap.SetJunctionSegment(px, py, true);
+                    else if (seg.Type == SegmentType.Empty)
+                        locationMap.SetSegment(px, py,
+                            SegmentType.Connection,
+                            connectionId: connId);
+                }
+
+                locationMap.Connections.Add(newConn);
+            }
+        }
+
+        public static void AddSpecialBorderLandmark(
+            GeneratedMap locationMap,
+            string id,
+            string name,
+            Direction direction,
+            string connectToNodeId,
+            Random random)
+        {
+            var borderNode = new GameMapNode
+            {
+                Id = id,
+                Name = name,
+                Icon = "🛤",
+                Size = MapSize.Small,
+                IsBorderLandmark = true,
+                BorderTargetRegionNodeId = null, // no exit
+                MapType = GameMapType.Location,
+                State = NodeState.Discovered
+            };
+
+            bool placed = PlaceBorderLandmarkNode(
+                locationMap, borderNode, direction, random);
+            if (!placed) return;
+
+            for (int nx = borderNode.Left;
+                     nx <= borderNode.Right; nx++)
+                for (int ny = borderNode.Top;
+                         ny <= borderNode.Bottom; ny++)
+                    locationMap.SetSegment(nx, ny,
+                        SegmentType.Node, id);
+
+            locationMap.Nodes.Add(borderNode);
+
+            // Connect to specified node
+            var target = locationMap.GetNode(connectToNodeId);
+            if (target == null) return;
+
+            var path = FindPath(locationMap, borderNode, target);
+            if (path == null) return;
+
+            var connId = $"conn_{id}_{connectToNodeId}";
+            var conn = new GameMapConnection
+            {
+                Id = connId,
+                FromNodeId = id,
+                ToNodeId = connectToNodeId,
+                Path = path,
+                SegmentCount = path.Count
+            };
+
+            foreach (var (px, py) in path)
+            {
+                var seg = locationMap.GetSegment(px, py);
+                if (seg.Type == SegmentType.Connection)
+                    locationMap.SetJunctionSegment(px, py, true);
+                else if (seg.Type == SegmentType.Empty)
+                    locationMap.SetSegment(px, py,
+                        SegmentType.Connection,
+                        connectionId: connId);
+            }
+
+            locationMap.Connections.Add(conn);
+        }
+
+        // Restore this — uses actual pixel positions
+        private static Direction CalculateDirection(
+            int fromX, int fromY, int toX, int toY)
+        {
+            int dx = toX - fromX;
+            int dy = toY - fromY;
+
+            if (Math.Abs(dx) < Math.Abs(dy) * 0.5)
+                return dy < 0 ? Direction.North : Direction.South;
+            if (Math.Abs(dy) < Math.Abs(dx) * 0.5)
+                return dx < 0 ? Direction.West : Direction.East;
+            if (dx > 0 && dy < 0) return Direction.NorthEast;
+            if (dx > 0 && dy > 0) return Direction.SouthEast;
+            if (dx < 0 && dy < 0) return Direction.NorthWest;
+            return Direction.SouthWest;
+        }
+
+        private static bool PlaceBorderLandmarkNode(
+            GeneratedMap map, GameMapNode node,
+            Direction direction, Random random)
+        {
+            int segSize = node.SegmentSize;
+            int margin = 4;
+            int w = map.Width;
+            int h = map.Height;
+            int zone = w / 5; // 20% of map width
+
+            for (int attempt = 0; attempt < 1000; attempt++)
+            {
+                int x, y;
+
+                switch (direction)
+                {
+                    case Direction.North:
+                    case Direction.NorthEast:
+                    case Direction.NorthWest:
+                        x = random.Next(margin, w - segSize - margin);
+                        y = random.Next(margin, zone);
+                        break;
+                    case Direction.South:
+                    case Direction.SouthEast:
+                    case Direction.SouthWest:
+                        x = random.Next(margin, w - segSize - margin);
+                        y = random.Next(h - zone, h - segSize - margin);
+                        break;
+                    case Direction.East:
+                        x = random.Next(w - zone, w - segSize - margin);
+                        y = random.Next(margin, h - segSize - margin);
+                        break;
+                    case Direction.West:
+                        x = random.Next(margin, zone);
+                        y = random.Next(margin, h - segSize - margin);
+                        break;
+                    default:
+                        x = random.Next(margin, w - segSize - margin);
+                        y = random.Next(h - zone, h - segSize - margin);
+                        break;
+                }
+
+                if (!map.IsFreeForNode(x, y, segSize)) continue;
+
+                node.GridX = x;
+                node.GridY = y;
+                return true;
+            }
+            return false;
+        }
+
+        private static GameMapNode? FindNearestNormalLandmark(
+            GeneratedMap map, GameMapNode borderLandmark)
+        {
+            GameMapNode? nearest = null;
+            double minDist = double.MaxValue;
+
+            foreach (var node in map.Nodes)
+            {
+                if (node.IsBorderLandmark) continue;
+
+                double dx = node.CenterX - borderLandmark.CenterX;
+                double dy = node.CenterY - borderLandmark.CenterY;
+                double dist = Math.Sqrt(dx * dx + dy * dy);
+
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearest = node;
+                }
+            }
+
+            return nearest;
         }
     }
 }

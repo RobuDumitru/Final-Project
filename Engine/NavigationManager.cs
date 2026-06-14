@@ -18,6 +18,7 @@ namespace LostInAForgottenCity.Engine
         private int _travelSegment = 0;
         private int _totalSegments = 0;
         private GameMapConnection? _travelConnection = null;
+        private string _previousRegionNodeId = "";
 
         // ── Maps ──────────────────────────────────
         // Region map (current region)
@@ -29,13 +30,13 @@ namespace LostInAForgottenCity.Engine
 
         // Currently displayed map
         public GeneratedMap? ActiveLocationMap
-            { get; private set; }
+        { get; private set; }
 
         // ── Player position ───────────────────────
         public string CurrentRegionNodeId
-            { get; private set; } = "";
+        { get; private set; } = "";
         public string CurrentLandmarkNodeId
-            { get; private set; } = "";
+        { get; private set; } = "";
         public bool IsInLocation
             => ActiveLocationMap != null;
         public bool IsTravelling
@@ -166,8 +167,10 @@ namespace LostInAForgottenCity.Engine
                 });
             }
 
-            // Border exit — travel to next region location
-            if (IsInLocation && RegionMap != null)
+            // Border exit — only available at border landmarks
+            if (IsInLocation &&
+                IsAtBorderLandmark() &&
+                RegionMap != null)
             {
                 var regionDestinations = MapGenerator
                     .GetAvailableDestinations(
@@ -205,14 +208,8 @@ namespace LostInAForgottenCity.Engine
                 ? CurrentLandmarkNodeId
                 : CurrentRegionNodeId;
 
-            // Mark as used
             _usedLookAround.Add(LookAroundKey());
 
-            // Discover connected nodes
-            MapGenerator.DiscoverVisibleNodes(
-                currentMap, currentNodeId);
-
-            // Apply cost
             var effect = new StatEffect
             {
                 Stamina = -1,
@@ -220,39 +217,69 @@ namespace LostInAForgottenCity.Engine
             };
             OnStatEffect?.Invoke(effect);
 
-            // Build description
-            var destinations = MapGenerator
-                .GetAvailableDestinations(
+            if (IsAtBorderLandmark())
+            {
+                // At border — show landmarks in location
+                MapGenerator.DiscoverVisibleNodes(
                     currentMap, currentNodeId);
 
-            OnConsoleMessage?.Invoke(
-                "You take a moment to assess " +
-                "your surroundings.", TextType.Description);
-
-            foreach (var (nodeId, nodeName, distance)
-                in destinations)
-            {
-                var node = currentMap.GetNode(nodeId);
-                string distLabel = distance.ToString()
-                    .ToUpper();
-                string nameLabel = node?.State ==
-                    NodeState.Undiscovered
-                    ? "???" : nodeName;
+                var destinations = MapGenerator
+                    .GetAvailableDestinations(
+                        currentMap, currentNodeId);
 
                 OnConsoleMessage?.Invoke(
-                    $"- {nameLabel} [{distLabel}]",
+                    "You survey the area ahead.",
                     TextType.Description);
+
+                foreach (var (nodeId, nodeName, distance)
+                    in destinations)
+                {
+                    var node = currentMap.GetNode(nodeId);
+                    if (node?.IsBorderLandmark == true) continue;
+
+                    string distLabel = distance.ToString()
+                        .ToUpper();
+                    OnConsoleMessage?.Invoke(
+                        $"- {nodeName} [{distLabel}]",
+                        TextType.Description);
+                }
+            }
+            else
+            {
+                // At normal landmark — show objects
+                // (object system coming next)
+                MapGenerator.DiscoverVisibleNodes(
+                    currentMap, currentNodeId);
+
+                OnConsoleMessage?.Invoke(
+                    "You take a moment to examine " +
+                    "your surroundings.",
+                    TextType.Description);
+
+                var destinations = MapGenerator
+                    .GetAvailableDestinations(
+                        currentMap, currentNodeId);
+
+                foreach (var (nodeId, nodeName, distance)
+                    in destinations)
+                {
+                    var node = currentMap.GetNode(nodeId);
+                    string distLabel = distance.ToString()
+                        .ToUpper();
+                    string name = node?.State ==
+                        NodeState.Undiscovered
+                        ? "???" : nodeName;
+                    OnConsoleMessage?.Invoke(
+                        $"- {name} [{distLabel}]",
+                        TextType.Description);
+                }
             }
 
             OnConsoleMessage?.Invoke(
                 "Used 1 stamina. 5 minutes passed.",
                 TextType.Gameline);
 
-            // Fire narrative trigger first time
-            OnNarrativeTrigger?.Invoke(
-                "look_around_first");
-
-            // Regenerate options with distances shown
+            OnNarrativeTrigger?.Invoke("look_around_first");
             GenerateOptions();
         }
 
@@ -310,21 +337,13 @@ namespace LostInAForgottenCity.Engine
                 ArriveAtLandmark(option);
         }
 
-        private void ExecuteLocationTravel(
-            NavigationOption option,
-            MovementType movType)
+        private void ExecuteLocationTravel(NavigationOption option, MovementType movType)
         {
             if (option.TargetNodeId == null) return;
-            var effect = MovementSystem.Calculate(
-                NavigationState.OnTheRoad,
-                option.Distance,
-                movType);
-
+            var effect = MovementSystem.Calculate(NavigationState.OnTheRoad, option.Distance, movType);
             OnStatEffect?.Invoke(effect);
-
-            OnConsoleMessage?.Invoke(
-                MovementSystem.GetResultGameline(effect),
-                TextType.Gameline);
+            OnConsoleMessage?.Invoke(MovementSystem.GetResultGameline(effect), TextType.Gameline);
+            _previousRegionNodeId = CurrentRegionNodeId;
 
             // Switch to region map for travel
             if (RegionMap != null)
@@ -389,13 +408,11 @@ namespace LostInAForgottenCity.Engine
             GenerateOptions();
         }
 
-        private void ArriveAtLocation(
-            NavigationOption option)
+        private void ArriveAtLocation(NavigationOption option)
         {
             if (option.TargetNodeId == null) return;
             CurrentRegionNodeId = option.TargetNodeId;
 
-            // Update region map
             if (RegionMap != null)
             {
                 MapGenerator.SetPlayerPosition(
@@ -404,38 +421,50 @@ namespace LostInAForgottenCity.Engine
                     RegionMap, CurrentRegionNodeId);
             }
 
-            // Load location map
             if (_locationMaps.TryGetValue(
-                CurrentRegionNodeId,
-                out var newLocMap))
+                CurrentRegionNodeId, out var newLocMap))
             {
                 ActiveLocationMap = newLocMap;
 
-                // Find arrival landmark (nearest to border)
-                var arrivalLandmark = newLocMap.Nodes
-                    .OrderBy(n => n.GridY)
-                    .LastOrDefault(); // southernmost
+                // Find border landmark that connects
+                // back to where we came from
+                var borderLandmark = newLocMap.Nodes
+                    .FirstOrDefault(n =>
+                        n.IsBorderLandmark &&
+                        n.BorderTargetRegionNodeId ==
+                        _previousRegionNodeId);
 
-                if (arrivalLandmark != null)
+                // Fall back to any border landmark
+                borderLandmark ??= newLocMap.Nodes
+                    .FirstOrDefault(n => n.IsBorderLandmark);
+
+                // Final fallback — first node
+                borderLandmark ??= newLocMap.Nodes
+                    .FirstOrDefault();
+
+                if (borderLandmark != null)
                 {
-                    CurrentLandmarkNodeId =
-                        arrivalLandmark.Id;
+                    CurrentLandmarkNodeId = borderLandmark.Id;
                     MapGenerator.SetPlayerPosition(
-                        newLocMap, arrivalLandmark.Id);
-                    MapGenerator.DiscoverVisibleNodes(
-                        newLocMap, arrivalLandmark.Id);
+                        newLocMap, borderLandmark.Id);
                 }
 
                 OnMapChanged?.Invoke(newLocMap);
             }
 
-            // Arrival message
             var regionNode = RegionMap?.GetNode(
                 CurrentRegionNodeId);
-            string name = regionNode?.Name ?? "the area";
+            string locName = regionNode?.Name ?? "the area";
+
+            var borderNode = ActiveLocationMap?.GetNode(
+                CurrentLandmarkNodeId);
+            string borderName = borderNode?.Name ?? "the road";
 
             OnConsoleMessage?.Invoke(
-                $"He arrived in {name}.",
+                $"You arrive at the outskirts of {locName}.",
+                TextType.Description);
+            OnConsoleMessage?.Invoke(
+                $"{borderName}.",
                 TextType.Description);
 
             OnNarrativeTrigger?.Invoke(
@@ -526,6 +555,15 @@ namespace LostInAForgottenCity.Engine
         {
             _usedLookAround.RemoveWhere(
                 k => k.StartsWith(regionNodeId + "_"));
+        }
+
+        // ── Helper ────────────────────────────────────
+        private bool IsAtBorderLandmark()
+        {
+            if (ActiveLocationMap == null) return false;
+            var node = ActiveLocationMap.GetNode(
+                CurrentLandmarkNodeId);
+            return node?.IsBorderLandmark ?? false;
         }
     }
 
